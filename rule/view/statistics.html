@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>渠道支撑智慧平台实时监控</title>
+    <link rel="stylesheet" type="text/css" href="../css/statistics.css">
+    <link type="text/css" rel="stylesheet" href="../js/jedate/skin/jedate.css" />
+</head>
+
+<body>
+    <header class="Exh_header">
+        <div class="header_title">渠道支撑智慧平台实时监控</div>
+        <div class="time"></div>
+    </header>
+    <section class="Exh_content">
+        <div class="content_left">
+            <div class="item">
+                <div class="chart_left">
+                    <h5 class="chart_title">
+						<span>工单类型占比</span>
+						<span class="btn" data-id="1"></span>	
+					</h5>
+                    <div class="chart_content" id="chart1"></div>
+                </div>
+            </div>
+            <div class="item">
+                <div class="chart_left">
+                    <h5 class="chart_title">
+						<span>客服首次响应时长</span>
+						<span class="btn" data-id="2"></span>
+					</h5>
+                    <div class="chart_content" id="chart2"></div>
+                    <div class="myzc_res">
+                        <span>平均服务时间</span>
+                        <span class="ratio"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <div class="chart_left">
+                    <h5 class="chart_title">
+					支撑成功率
+					<span class="btn" data-id="3"></span>
+				</h5>
+                    <div class="chart_content" id="chart3"></div>
+                    <div class="myzc_ratio">
+                        <span>绵阳市支撑成功率</span>
+                        <span class="ratio"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="content_center">
+            <div class="chart_center geoTubiao">
+                <h5 class="chart_title">
+					绵阳市各区县工单发起量
+					<span class="btn" data-id="7"></span>
+				</h5>
+                <div class="chart_content" id="chart7"></div>
+            </div>
+        </div>
+        <div class="content_right">
+            <div class="item">
+                <div class="chart_right">
+                    <h5 class="chart_title">待处理工单最大量<span class="btn" data-id="4"></span></h5>
+                    <div class="chart_content" id="chart4"></div>
+                </div>
+            </div>
+            <div class="item">
+                <div class="chart_right">
+                    <h5 class="chart_title">服务满意度<span class="btn" data-id="5"></span></h5>
+                    <div class="chart_content" id="chart5"></div>
+                    <div class="myzc_fw">
+                        <span>个人平均服务满意度</span>
+                        <span class="ratio"></span>
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <div class="chart_right">
+                    <h5 class="chart_title">在线客服分布<span class="btn" data-id="6"></span></h5>
+                    <div class="chart_content" id="chart6"></div>
+                    <div class="legend">
+                        <div class="li">
+                            <span class="item item1"></span>
+                            <span>在线</span>
+                        </div>
+                        <div class="li">
+                            <span class="item item3"></span>
+                            <span>退出</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    <div class="mask">
+        <div class="contentbox">
+            <div class="title">刷新频率修改</div>
+            <div class="content">
+                <label for="input">刷新频率:</label>
+                <div class="select">
+                    <input type="text" id="selected-type" placeholder="请选择" readonly="readonly">
+                    <select name="" id="types">
+                        <option value="10">10</option>
+                        <option value="20">20</option>
+                        <option value="30">30</option>
+                    </select>
+                </div>
+            </div>
+            <div class="c_footer">
+                <button type="button" class="confirm">确认</button>
+                <button type="button" class="cancelbtn">取消</button>
+            </div>
+        </div>
+    </div>
+    <input type="hidden" id="token" name="token" value="20FFDB9F6316B915A4DB64F8E4A1E297FCFF742DC84C6486CC2526CC39F4C58A49875BB154789D1F82CFDC61CF13BDEE213F1AE1A4E25355D2E23378E7E9F185E910CB887F8E6B5B4A02F18F9527BE2343AB0528B73AC0A8758AB821CB29D8BC6581250947DB35320EE99D77CF30534998106CADCAC24DF31765661BC70486D6B329597E3C47E90933FE7CEE1C865EA8AF3B7488B1A6599C2ED74871499389DE091CBC07F31BB6426B69A94A52ED68123CC15E34E14C7339F7631C99812CF8FD979659D70080CED603411C9E8D832C21D4BF834BDD8F93DD5D8FEC8750A67774E40E2ADF68B513CC7CE9AAEC7CB4FD089C8C15A36CA52EA8C4088352C6CE95EF67E81A3337D228A3AACA4C70965E2992D2808A32400D10BFC8441AE34DEB66BF22207877C3112A73961894540F4A2A6A5653C688F8378ED9B88AECB88536BD3C762A2E3EAC3D99708926488C36DD6A88DF0026597CD7D2245715487E2FB35223D001202842AFE52DCEB69BD557710A52B5097CCCDC21BC19AD4EAC1591D6764B">
+    <script src="../js/echart/echarts.min.js"></script>
+    <script src="../js/echart/echarts-gl.min.js"></script>
+    <script data-main="../js/statistics-main" src="../js/require.js"></script>
+</body>
+
+</html>

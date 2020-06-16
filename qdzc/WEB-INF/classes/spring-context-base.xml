@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:p="http://www.springframework.org/schema/p"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xsi:schemaLocation="   
+           http://www.springframework.org/schema/beans   
+           http://www.springframework.org/schema/beans/spring-beans-3.2.xsd   
+           http://www.springframework.org/schema/context   
+           http://www.springframework.org/schema/context/spring-context-3.2.xsd  
+           http://www.springframework.org/schema/mvc   
+           http://www.springframework.org/schema/mvc/spring-mvc-3.2.xsd
+           http://www.springframework.org/schema/tx
+           http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+           http://www.springframework.org/schema/aop
+           http://www.springframework.org/schema/aop/spring-aop-3.2.xsd
+           http://www.springframework.org/schema/cache
+           http://www.springframework.org/schema/cache/spring-cache.xsd
+           http://www.springframework.org/schema/task
+           http://www.springframework.org/schema/task/spring-task.xsd">
+           
+     <bean id="environmentVariablesConfiguration"
+	    class="org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig">
+	    <property name="algorithm" value="PBEWithMD5AndDES"/>
+	    <property name="passwordEnvName" value="APP_ENCRYPTION_PASSWORD"/>
+	    <!-- 需要与生成加密参数时使用的盐保持一致  -->
+	    <property name="password" value="portal"/>
+    </bean>
+
+    <bean id="configurationEncryptor"
+          class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+        <property name="config" ref="environmentVariablesConfiguration"/>
+    </bean>
+
+    <bean id="propertyConfigurer"
+          class="org.jasypt.spring31.properties.EncryptablePropertyPlaceholderConfigurer">
+        <constructor-arg ref="configurationEncryptor"/>
+        <property name="locations">
+            <list>
+                <value>classpath:sys.properties</value>
+            </list>
+        </property>
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+    </bean>
+	
+	<context:property-placeholder location="classpath:sys.properties" file-encoding="utf-8"/>
+
+	<!-- 启用注解驱动的缓存 -->
+	<!-- <cache:annotation-driven /> -->
+	<!-- 声明缓存管理器 -->
+	<!-- <bean id="cacheManagerFactory" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+	    <property name="configLocation" value="classpath:ehcache.xml"/>
+	</bean>
+	<bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
+	    <property name="cacheManager" ref="cacheManagerFactory"/>
+	</bean> -->
+
+	<context:component-scan base-package="cn.scihi">
+		<context:exclude-filter type="annotation" expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+	<task:annotation-driven/>
+	<task:executor id="asyncAssignTask" pool-size="30-100" queue-capacity="200"/>
+	
+	<aop:aspectj-autoproxy proxy-target-class="true"></aop:aspectj-autoproxy>
+	
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!--申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能--> 
+		<property name="validationQuery" value="select 1" />
+		<property name="testOnBorrow" value="true" />
+		<!-- 配置初始化大小、最小、最大 -->
+		<property name="initialSize" value="1" />
+		<property name="minIdle" value="1" />
+		<property name="maxActive" value="500" />            
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="60000" />          
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />          
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+		 <!--是否要进行检测-->
+		<property name="testWhileIdle" value="true" /> 
+		<!--是否在数据库连接请求量大的时候，如总数50，当前已请求了49个，所剩不多了，检测那些执行时间久的连接--> 
+        <property name="removeAbandoned" value="true"/> 
+		
+	</bean>
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource" />
+		<property name="configLocation" value="classpath:mybatis-config.xml" />
+		<property name="mapperLocations" value="classpath:cn/scihi/**/*Mapper.xml" />
+	</bean>
+
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="cn.scihi.**.mapper" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+	
+
+ 	<bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSource" />
+	</bean>
+	
+	<!-- 支持注解事务 -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+	
+	<tx:advice id="transactionAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="insert*" propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="delete*" propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="update*" propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="sub*" propagation="REQUIRED" rollback-for="Exception" />
+			<tx:method name="query*" propagation="NOT_SUPPORTED" read-only="true" />
+			<!-- <tx:method name="*" propagation="REQUIRED" isolation="READ_COMMITTED" rollback-for="Exception" /> -->
+		</tx:attributes>
+	</tx:advice>
+
+	<aop:config>
+		<aop:pointcut id="transactionPointcut" expression="execution(* cn.scihi..*.ucc.*.*(..))" />
+		<aop:advisor pointcut-ref="transactionPointcut" advice-ref="transactionAdvice" />
+	</aop:config>
+	
+	<bean class="cn.scihi.mb.commons.util.SpringFactory" />
+	
+	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="UTF-8" />
+		<property name="maxUploadSize" value="524288000" /><!-- 上传文件大小限制为50M*1024*1024 -->
+	</bean>
+</beans>

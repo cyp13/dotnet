@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.OuterMapper">
+	<!-- 根据boss工号进行工单附件查询 -->
+	<select id="queryFilePathByBoss" parameterType="java.util.HashMap" resultType="java.util.Map">
+	    SELECT
+			t.FORM_CODE,
+			f.EXT3 as orginalPath,
+            f.FILE_EXT as extension
+		FROM
+			t_work_agency t
+		INNER JOIN t_work_common c ON t.FORM_CODE = c.form_code
+		INNER JOIN sys_file f on t.ID = f.RELATED_ID
+		<where>
+		 <if test="null != userPhone">
+			t.USER_PHONE = #{userPhone}
+		 </if>
+		 <if test="null != bossCode">
+			AND c.boss_code = #{bossCode}
+		 </if>
+		 <if test="null != operCode">
+			AND c.oper_code like concat('%',#{operCode},'%')
+		 </if>
+		 <if test="null != replyTIme">
+			AND DATE_FORMAT(c.oper_time, '%Y-%m-%d') = DATE_FORMAT(#{replyTIme}, '%Y-%m-%d')
+		 </if>
+		</where>
+	</select>
+	<!-- 根据专线号查询专线工单附件列表 -->
+	<select id="queryFilePathBySpecial" parameterType="java.util.HashMap" resultType="java.util.Map">
+	    SELECT
+			t.FORM_CODE,
+			f.EXT3 as orginalPath,
+            f.FILE_EXT as extension
+		FROM
+			t_work_special t
+			INNER JOIN sys_file f on t.ID = f.RELATED_ID
+		WHERE
+			t.specialnumber = #{queryCode}
+			and t.work_type = '1'
+	</select>
+    <!-- 根据专线号查询和商务工单附件列表 -->
+	<select id="queryFilePathByAnd" parameterType="java.util.HashMap" resultType="java.util.Map">
+	   SELECT
+			t.FORM_CODE,
+			f.EXT3 as orginalPath,
+            f.FILE_EXT as extension
+		FROM
+			t_work_commerce t
+			INNER JOIN sys_file f on t.ID = f.RELATED_ID
+		WHERE
+			t.specialnumber = #{queryCode}
+			and t.work_type = '1'
+	</select>
+	<!-- 根据boss工号进行资费迁转代办工单附件查询 -->
+	<select id="queryFilePathByBossAboutChargesMoving" parameterType="java.util.HashMap" resultType="java.util.Map">
+	    SELECT
+			t.FORM_CODE,
+			f.EXT3 as orginalPath,
+            f.FILE_EXT as extension
+		FROM
+			t_work_zfqzdb t
+		INNER JOIN t_work_common c ON t.FORM_CODE = c.form_code
+		INNER JOIN sys_file f on t.ID = f.RELATED_ID
+		<where>
+		 <if test="null != userPhone">
+			t.USER_PHONE = #{userPhone}
+		 </if>
+		 <if test="null != bossCode">
+			AND c.boss_code = #{bossCode}
+		 </if>
+		 <if test="null != operCode">
+			AND c.oper_code like concat('%',#{operCode},'%')
+		 </if>
+		 <if test="null != replyTIme">
+			AND DATE_FORMAT(c.oper_time, '%Y-%m-%d') = DATE_FORMAT(#{replyTIme}, '%Y-%m-%d')
+		 </if>
+		</where>
+	</select>
+	
+</mapper>

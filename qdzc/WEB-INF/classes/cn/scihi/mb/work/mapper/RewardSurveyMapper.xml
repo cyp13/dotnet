@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.RewardSurveyMapper">
+	<select id="queryRewardSurvey" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		select t.ID as "id",
+		t.SYS_ID as "sysId",
+		t.SURVEY_TITLE as "rsTitle",
+		t.SURVEY_CONTENT as "rsContent",
+		t.SURVEY_TYPE as "rsType",
+		t.SURVEY_STATUS as "rsStatus",
+		t.SURVEY_SENDED as "rsSended",
+		t.CREATER as "creater",
+		(select USER_ALIAS from sys_user where user_name = t.CREATER) as "createrName",
+		t.CREATED as "created",
+		(select count(ID) from t_reward_survey_record where SURVEY_ID = t.ID) as "sendCount",
+		(select count(ID) from t_reward_survey_record where SURVEY_ID = t.ID and FD_STATUS = '1' ) as "fdCount",
+		(select count(ID) from t_reward_survey_record where SURVEY_ID = t.ID and FD_STATUS = '0' ) as "nFdCount",
+		(select count(ID) from t_reward_survey_record where SURVEY_ID = t.ID and FD_RESULT = '1' ) as "fdYCount",
+    	(select count(ID) from t_reward_survey_record where SURVEY_ID = t.ID and FD_RESULT = '0' ) as "fdNCount"
+		from t_reward_survey t
+		where 1=1
+		<if test="null != id and '' != id">
+			and t.id = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != sysId and '' != sysId">
+			and t.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != creater and '' != creater">
+			and t.CREATER = #{creater,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rsType and '' != rsType">
+			and t.SURVEY_TYPE = #{rsType,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rsStatus and '' != rsStatus">
+			and t.SURVEY_STATUS = #{rsStatus,jdbcType=VARCHAR}
+		</if>
+		<if test="null != startTime and '' != startTime and null != endTime and '' != endTime">
+			and t.CREATED BETWEEN DATE_FORMAT(#{startTime,jdbcType=TIMESTAMP}, '%Y-%m-%d 00:00:00') and DATE_FORMAT(DATE_ADD(#{endTime,jdbcType=TIMESTAMP}, INTERVAL 1 DAY),'%Y-%m-%d 00:00:00')
+		</if>
+		order by t.SURVEY_STATUS desc,t.CREATED desc
+	</select>
+	<insert id="insertRewardSurvey" parameterType="java.util.HashMap">
+		insert into t_reward_survey (
+			ID,
+			SYS_ID,
+			SURVEY_TITLE,
+			SURVEY_CONTENT,
+			SURVEY_TYPE,
+			SURVEY_STATUS,
+			SURVEY_SENDED,
+			CREATER,
+			CREATED
+		) values (
+			#{id,jdbcType=VARCHAR},
+			#{sysId,jdbcType=VARCHAR},
+			#{rsTitle,jdbcType=VARCHAR},
+			#{rsContent,jdbcType=VARCHAR},
+			#{rsType,jdbcType=VARCHAR},
+			#{rsSuatus,jdbcType=VARCHAR},
+			#{rsSended,jdbcType=TIMESTAMP},
+			#{creater,jdbcType=VARCHAR},
+			#{created,jdbcType=TIMESTAMP}
+		)
+	</insert>
+	<update id="updateRewardSurvey" parameterType="java.util.HashMap">
+		update t_reward_survey
+		set
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP}
+		<if test="null != rsTitle and '' != rsTitle">
+			,SURVEY_TITLE = #{rsTitle,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rsContent and '' != rsContent">
+			,SURVEY_CONTENT = #{rsContent,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rsType and '' != rsType">
+			,SURVEY_TYPE = #{rsType,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rsSuatus and '' != rsSuatus">
+			,SURVEY_STATUS = #{rsSuatus,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rsSended and '' != rsSended">
+			,SURVEY_SENDED = #{rsSended,jdbcType=TIMESTAMP}
+		</if>
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+	<delete id="deleteRewardSurvey" parameterType="java.lang.String">
+		delete from sys_file where related_id in (
+			select id from t_reward_survey_record where survey_id = #{_parameter,jdbcType=VARCHAR}
+		);
+		delete from t_reward_survey_record where survey_id = #{_parameter,jdbcType=VARCHAR};
+		delete from t_reward_survey where id = #{_parameter,jdbcType=VARCHAR};
+	</delete>
+	<select id="queryQdBossUserId" parameterType="java.util.HashMap" resultType="java.lang.String">
+		select distinct t.ID
+		from sys_user t
+		join sys_user_role t1 on t.id = t1.USER_ID
+		join sys_role t2 on t1.ROLE_ID = t2.ID and t2.ROW_VALID = '1' and t2.ROLE_NAME = #{roleName,jdbcType=VARCHAR}
+		where t.ROW_VALID = '1'
+		and t.SYS_ID = #{sysId,jdbcType=VARCHAR}
+	</select>
+	<insert id="insertRewardSurveyRecord" parameterType="java.util.HashMap">
+		insert into t_reward_survey_record (
+			ID,
+			SYS_ID,
+			SURVEY_ID,
+			USER_ID,
+			CREATER,
+			CREATED
+		) values (
+			#{id,jdbcType=VARCHAR},
+			#{sysId,jdbcType=VARCHAR},
+			#{surveyId,jdbcType=VARCHAR},
+			#{userId,jdbcType=VARCHAR},
+			#{creater,jdbcType=VARCHAR},
+			#{created,jdbcType=TIMESTAMP}
+		)
+	</insert>
+	<delete id="deleteRewardSurveyRecord" parameterType="java.util.HashMap">
+		<if test="null != id and '' != id">
+			delete from sys_file where related_id = #{id,jdbcType=VARCHAR};
+			delete from t_reward_survey_record where id = #{id,jdbcType=VARCHAR};
+		</if>
+		<if test="null != surveyId and '' != surveyId">
+			delete from sys_file where related_id in ( select id from t_reward_survey_record where survey_id = #{surveyId,jdbcType=VARCHAR} );
+			delete from t_reward_survey_record where survey_id = #{surveyId,jdbcType=VARCHAR};
+		</if>
+	</delete>
+</mapper>

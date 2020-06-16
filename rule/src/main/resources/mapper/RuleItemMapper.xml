@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zxj.rule.dao.RuleItemMapper">
+	<select id="queryRuleItem" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select distinct
+		t.id as "id",
+		t.rule_defined_id as "rule_defined_id",
+		t.calculate_type as "calculate_type",
+		t.max_value as "max_value",
+		t.calculate_value as "calculate_value",
+		t.min_value as "min_value",
+		t.integral as "integral",
+		t.if_first as "if_first"
+		from rule_item t
+		where 1=1
+		<if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+		<if test="null != rule_defined_id and '' != rule_defined_id">
+			and t.rule_defined_id = #{rule_defined_id}
+		</if>
+		<if test="null != if_first and '' != if_first">
+			and t.if_first = #{if_first}
+		</if>
+		order by t.id asc
+	</select>
+
+	<insert id="insertRuleItem" parameterType="java.util.HashMap">
+		insert into
+		rule_item(
+		<if test="integral != null and integral != ''">
+			integral,
+		</if>
+		<if test="calculate_value != null and calculate_value != ''">
+			calculate_value,
+		</if>
+		<if test="min_value != null and min_value != ''">
+			min_value,
+		</if>
+		<if test="max_value != null and max_value != ''">
+			max_value,
+		</if>
+		<if test="calculate_type != null and calculate_type != ''">
+			calculate_type,
+		</if>
+		<if test="if_first != null and if_first != ''">
+			if_first,
+		</if>
+		<if test="rule_defined_id != null and rule_defined_id != ''">
+			rule_defined_id
+		</if>
+		) values(
+		<if test="integral != null and integral != ''">
+			#{integral},
+		</if>
+		<if test="calculate_value != null and calculate_value != ''">
+			#{calculate_value},
+		</if>
+		<if test="min_value != null and min_value != ''">
+			#{min_value},
+		</if>
+		<if test="max_value != null and max_value != ''">
+			#{max_value},
+		</if>
+		<if test="calculate_type != null and calculate_type != ''">
+			#{calculate_type},
+		</if>
+		<if test="if_first != null and if_first != ''">
+			#{if_first},
+		</if>
+		<if test="rule_defined_id != null and rule_defined_id != ''">
+			#{rule_defined_id}
+		</if>
+		)
+	</insert>
+
+	<update id="updateRuleItem" parameterType="java.util.HashMap">
+		update rule_item
+		<set>
+			<if test="null != min_value and '' != min_value">
+				min_value=#{min_value},
+			</if>
+			<if test="null != max_value and '' != max_value">
+				max_value=#{max_value},
+			</if>
+			<if test="null != if_first and '' != if_first">
+				if_first=#{if_first},
+			</if>
+			<if test="null != calculate_type and '' != calculate_type">
+				calculate_type=#{calculate_type},
+			</if>
+		</set>
+
+		where id=#{id}
+	</update>
+
+
+	<delete id="deleteRuleItem" parameterType="java.lang.String">
+		delete from
+		rule_item
+		where
+		id=#{id}
+	</delete>
+</mapper>

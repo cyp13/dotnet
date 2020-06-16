@@ -1,0 +1,23 @@
+package cn.scihi.drools.rule;
+
+import java.util.Map;
+import java.util.List;
+import cn.scihi.mb.work.service.impl.TaskServiceImpl;
+dialect "java"
+
+rule "rule-1"
+	salience 3
+	when
+		eval(true)
+		$taskService:TaskServiceImpl();
+	then
+		Map ruleMap = $taskService.getRuleMap();
+		String formType = ruleMap.get("form_type")+"";
+		//ruleMap.put("workTime","1");//上班时间内
+		ruleMap.put("adopt","1");//接单
+		ruleMap.put("leastTask","1");//待办最少，总量最少
+		$taskService.assignUser(ruleMap);//正常派单
+		 
+end
+
+

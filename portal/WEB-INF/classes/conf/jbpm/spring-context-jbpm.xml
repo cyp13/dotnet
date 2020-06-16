@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.2.xsd">
+
+	<bean id="springHelper" class="org.jbpm.pvm.internal.processengine.SpringHelper">
+		<property name="jbpmCfg" value="conf/jbpm/jbpm.cfg.xml" />
+	</bean>
+
+	<bean id="pe" factory-bean="springHelper" factory-method="createProcessEngine" />
+
+	<bean id="jbpmService" class="cn.scihi.jbpm.service.impl.JbpmService" depends-on="pe" />
+
+	<bean id="jbpmUcc" class="cn.scihi.jbpm.ucc.impl.JbpmUcc" />
+</beans>

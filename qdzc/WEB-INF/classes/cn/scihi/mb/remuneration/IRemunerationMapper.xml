@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.remuneration.mapper.IRemunerationMapper">
+
+<update id="updateRemuneration" parameterType="java.lang.Integer">
+	<foreach collection="updateMap" item="value" separator=";" index="key">
+		update sys_remuneration_value set channel_name=#{channel_name}, value_=#{value}
+		where sys_id=#{sysId} and channel=#{channel} and year_month_=#{year_month_} and header_name=#{key}
+	</foreach>
+</update>
+
+<select id="queryRemunerationValueListOrginal" parameterType="java.util.Map" resultType="java.util.Map">
+	select srv.*
+	from sys_remuneration_value srv
+	left join sys_remuneration_header srh on srv.sys_id=srh.sys_id and srv.bid=srh.bid and srv.header_name=srh.name
+	where srv.sys_id=#{sysId} and srv.bid=#{bid}
+	<if test="null!=yearMonth and ''!=yearMonth">
+		and srv.year_month_=#{yearMonth}
+	</if>
+	<if test="null!=channel and ''!=channel">
+		and srv.channel=#{channel}
+	</if>
+	order by srv.channel, srh.sort_no
+</select>
+<select id="queryMaxVersion" parameterType="java.util.Map" resultType="java.lang.Integer">
+	select max(bversion) from sys_remuneration_header where sys_id=#{sysId} and bname=#{bname}
+</select>
+<delete id="deleteDatas" parameterType="java.util.Map">
+	<foreach collection="datas" item="row" separator=";" index="index">
+		delete srv from sys_remuneration_value srv
+		where srv.sys_id=#{sysId} and srv.channel=#{row.channel} and srv.year_month_=#{row.year_month}
+	</foreach>
+</delete>
+<insert id="saveDatas" parameterType="java.util.Map">
+	<foreach collection="datas" item="row" separator=";" index="index">
+		insert into sys_remuneration_value(
+			channel,channel_name,year_month_,header_name,bid,sys_id,value_,creater,created,modifier,modified
+		)values(
+			#{row.channel},#{row.channel_name},#{row.year_month},#{row.header_name},#{row.bid},#{row.sys_id},#{row.value},#{row.creater},now(),#{row.modifier},now()
+		)
+	</foreach>
+</insert>
+<select id="queryRemunerationValue" parameterType="java.util.Map" resultType="java.util.Map">
+	select srv.* from sys_remuneration_value srv
+	left join sys_remuneration_header srh on srv.sys_id=srh.sys_id and srv.bid=srh.bid and srv.header_name=srh.name
+	where srv.sys_id=#{sysId} and srv.channel=#{channel}
+	<choose>
+		<when test="null != yearMonth and '' != yearMonth">
+			and srv.year_month_=#{yearMonth}
+		</when>
+		<otherwise>
+			and srv.year_month_ = (
+				select max(year_month_) from sys_remuneration_value srv1 where srv1.sys_id=srv.sys_id and srv1.channel=srv.channel
+			)
+		</otherwise>
+	</choose>
+	order by srh.sort_no
+</select>
+<select id="getUUID" parameterType="java.util.Map" resultType="java.lang.String">
+	select uuid()
+</select>
+<insert id="saveTypeList" parameterType="java.util.Map">
+	select @sortNo:=0;
+	<foreach collection="names" item="typeName" separator=";" index="index">
+		insert into sys_remuneration_header(
+			bid , bname, bversion,sys_id ,name ,status ,sort_no ,created_org_id ,creater ,created ,modifier ,modified
+		)values(
+			#{bid}, #{bname}, #{bversion} ,#{sysId} ,#{typeName} ,0 ,@sortNo:=@sortNo+1 ,#{userOrgId} ,#{userName} ,now() ,#{userName} ,now()
+		)
+	</foreach>
+</insert>
+<update id="updateAllTypesDeprecated" parameterType="java.util.Map">
+	update sys_remuneration_header set status=-1 where sys_id=#{sysId};
+</update>
+<select id="queryTypeList" parameterType="java.util.Map" resultType="java.util.Map">
+	select srh.bid,srh.bname,srh.bversion,srh.sys_id,srh.status,srh.creater,srh.created,srh.modifier,srh.modified, user.user_alias, org.org_name
+		, group_concat(name order by srh.sort_no) names
+	from sys_remuneration_header srh
+	left join sys_user user on srh.creater=user.user_name
+	left join sys_org org on srh.created_org_id=org.id
+	where srh.sys_id=#{sysId}
+	<if test="null != status">
+		and srh.status=#{status}
+	</if>
+	group by srh.bid,srh.sys_id,srh.status,srh.creater,srh.created,srh.modifier,srh.modified, user.user_alias, org.org_name
+	order by srh.created desc
+</select>
+
+<delete id="deleteTypeSetting" parameterType="java.util.Map">
+	delete srv from sys_remuneration_value srv
+	where srv.sys_id=#{sysId} and srv.bid in
+	<foreach collection="bids" item="bid" separator="," index="index" open="(" close=")">
+		#{bid}
+	</foreach>;
+	delete srh from sys_remuneration_header srh
+	where srh.sys_id=#{sysId} and srh.bid in
+	<foreach collection="bids" item="bid" separator="," index="index" open="(" close=")">
+		#{bid}
+	</foreach>;
+</delete>
+<select id="queryDataCount" parameterType="java.util.Map" resultType="java.util.Map">
+	select count(1) count_ from sys_remuneration_value srv
+	where srv.sys_id=#{sysId} and srv.bid in
+	<foreach collection="bids" item="bid" separator="," index="index" open="(" close=")">
+		#{bid}
+	</foreach>
+</select>
+</mapper>

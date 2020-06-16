@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.report.mapper.ParamMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.report.pojo.Param">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="ENAME" jdbcType="VARCHAR" property="ename" />
+		<result column="CNAME" jdbcType="VARCHAR" property="cname" />
+		<result column="DVALUE" jdbcType="VARCHAR" property="dvalue" />
+		<result column="PVALUE" jdbcType="VARCHAR" property="pvalue" />
+		<result column="VALUE_TYPE" jdbcType="VARCHAR" property="valueType" />
+		<result column="VALID_FLAG" jdbcType="VARCHAR" property="validFlag" />
+		<result column="CONTROL_TYPE" jdbcType="VARCHAR" property="controlType" />
+		<result column="SORT_NO" jdbcType="INTEGER" property="sortNo" />
+		<result column="DS_ID" jdbcType="VARCHAR" property="dsId" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, SYS_ID, ENAME, CNAME, DVALUE, PVALUE, VALUE_TYPE, VALID_FLAG, CONTROL_TYPE, 
+		SORT_NO, DS_ID, CREATER, CREATED, MODIFIER, MODIFIED, REMARK, ROW_DEFAULT, 
+		ROW_VALID, EXT1, EXT2, EXT3, ROW_VERSION
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="cn.scihi.report.pojo.Param"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_param
+		where 1 = 1
+		and SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<![CDATA[ and ROW_VALID <> '9' ]]>
+		<if test="null != id and '' != id">
+			and ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != ename and '' != ename">
+			and ENAME = #{ename,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (ENAME like '%${keywords}%'
+			or CNAME like '%${keywords}%')
+		</if>
+		order by SORT_NO, CREATED desc
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from sys_menu_param where PARAM_ID = #{id,jdbcType=VARCHAR};
+		
+		delete from sys_param where ID = #{id,jdbcType=VARCHAR} <![CDATA[ and ROW_DEFAULT <> '1' ]]>;
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.report.pojo.Param">
+		insert into sys_param (
+		ID,
+		SYS_ID,
+		ENAME,
+		CNAME,
+		DVALUE, 
+		PVALUE,
+		VALUE_TYPE,
+		VALID_FLAG,
+		CONTROL_TYPE,
+		SORT_NO,
+		DS_ID,
+		CREATER,
+		CREATED,
+		MODIFIER,
+		MODIFIED,
+		REMARK,
+		ROW_DEFAULT,
+		ROW_VALID,
+		EXT1, EXT2, EXT3,
+		ROW_VERSION
+		)
+		values
+		(#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{ename,jdbcType=VARCHAR},
+		#{cname,jdbcType=VARCHAR},
+		#{dvalue,jdbcType=VARCHAR},
+		#{pvalue,jdbcType=VARCHAR},
+		#{valueType,jdbcType=VARCHAR},
+		#{validFlag,jdbcType=VARCHAR},
+		#{controlType,jdbcType=VARCHAR},
+		#{sortNo,jdbcType=INTEGER},
+		#{dsId,jdbcType=VARCHAR},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{remark,jdbcType=VARCHAR},
+		#{rowDefault,jdbcType=VARCHAR},
+		#{rowValid,jdbcType=VARCHAR},
+		#{ext1,jdbcType=VARCHAR},
+		#{ext2,jdbcType=VARCHAR},
+		#{ext3,jdbcType=VARCHAR},
+		#{rowVersion,jdbcType=DECIMAL}
+		)
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.report.pojo.Param">
+		update sys_param
+		set
+		ENAME = #{ename,jdbcType=VARCHAR},
+		CNAME = #{cname,jdbcType=VARCHAR},
+		DVALUE = #{dvalue,jdbcType=VARCHAR},
+		PVALUE = #{pvalue,jdbcType=VARCHAR},
+		VALUE_TYPE = #{valueType,jdbcType=VARCHAR},
+		VALID_FLAG = #{validFlag,jdbcType=VARCHAR},
+		CONTROL_TYPE = #{controlType,jdbcType=VARCHAR},
+		SORT_NO = #{sortNo,jdbcType=INTEGER},
+		DS_ID = #{dsId,jdbcType=VARCHAR},
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		REMARK = #{remark,jdbcType=VARCHAR},
+		ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		EXT1 = #{ext1,jdbcType=VARCHAR},
+		EXT2 = #{ext2,jdbcType=VARCHAR},
+		EXT3 = #{ext3,jdbcType=VARCHAR},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

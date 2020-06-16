@@ -1,0 +1,291 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.MsgRecordMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.MsgRecord">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="MSG_ID" jdbcType="VARCHAR" property="msgId" />
+		<result column="USER_ID" jdbcType="VARCHAR" property="userId" />
+		<result column="READ_STATUS" jdbcType="VARCHAR" property="readStatus" />
+		
+		<result column="MSG_TYPE" jdbcType="VARCHAR" property="msgType" />
+		<result column="MSG_TITLE" jdbcType="VARCHAR" property="msgTitle" />
+		<result column="MSG_CONTENT" jdbcType="VARCHAR" property="msgContent" />
+		<result column="MSG_LEVEL" jdbcType="VARCHAR" property="msgLevel" />
+
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+		
+		<result column="USER_NAME" jdbcType="VARCHAR" property="userName" />
+		<result column="USER_ALIAS" jdbcType="VARCHAR" property="userAlias" />
+		<result column="MOBILE_PHONE" jdbcType="VARCHAR" property="userPhone" />
+		<result column="ORG_NAME" jdbcType="VARCHAR" property="orgName" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		T.ID, T.SYS_ID, T.MSG_ID, T.USER_ID, T.READ_STATUS, T1.MSG_TYPE, T1.MSG_TITLE, T1.MSG_LEVEL, 
+		T.CREATER, T.CREATED, T.MODIFIER, T.MODIFIED, T.ROW_VERSION, T2.USER_NAME, T2.USER_ALIAS, T3.ORG_NAME, T1.MSG_CONTENT,
+		T2.MOBILE_PHONE
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="cn.scihi.sys.pojo.MsgRecord"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		<if test="null != ext3 and '' != ext3">
+			,1 as "EXT3"
+		</if>
+		from sys_msg_record T
+		left join sys_msg T1 on T.MSG_ID = T1.ID and T.SYS_ID = T1.SYS_ID
+		left join sys_user T2 on T.USER_ID = T2.ID 
+		left join sys_org T3 on T2.ORG_ID = T3.ID 
+		where 1 = 1
+		and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<if test="'all' != extMap.flag_">
+			and T.READ_STATUS in ('2' ,'3')
+		</if>
+		<if test="null != id and '' != id">
+			and T.ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != msgId and '' != msgId">
+			and T.MSG_ID = #{msgId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != userId and '' != userId">
+			and T.USER_ID = #{userId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != msgType and '' != msgType">
+			<choose>
+				<when test="'!9' == msgType">
+					<![CDATA[ and T1.MSG_TYPE <> '9' ]]>
+				</when>
+				<otherwise>
+					and T1.MSG_TYPE in(${msgType}) 
+				</otherwise>
+			</choose>
+		</if>
+		<if test="null != readStatus and '' != readStatus">
+			and T.READ_STATUS = #{readStatus,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (T1.MSG_TITLE like '%${keywords}%'
+			or T2.USER_NAME like '%${keywords}%'
+			or T2.USER_ALIAS like '%${keywords}%'
+			or T3.ORG_NAME like '%${keywords}%')
+		</if>
+		
+		<if test="null != titles and '' != titles">
+			and T1.MSG_TITLE like '%${titles}%' 
+			
+			
+		</if>
+		<if test="null != startTime and '' != startTime">
+			AND T.CREATED >=DATE_FORMAT(#{startTime}, '%Y-%m-%d
+			00:00:00')
+		</if>
+		<if test="null != endTime and '' != startTime">
+			AND T.CREATED &lt;=
+			DATE_FORMAT(DATE_ADD(#{endTime},INTERVAL 1
+			DAY),'%Y-%m-%d 00:00:00')
+		</if>
+		
+		
+		order by T.READ_STATUS ASC,T1.MSG_LEVEL desc,T.CREATED   desc
+		<if test="null != extMap.limitCount_ and '' != extMap.limitCount_">
+			limit 0,#{extMap.limitCount_,jdbcType=INTEGER}
+		</if>
+	</select>
+	<select id="selectMsgCount" parameterType="cn.scihi.sys.pojo.MsgRecord"
+		resultType="java.lang.Integer">
+		select count(1) as 'num'
+		from sys_msg_record T
+		left join sys_msg T1 on T.MSG_ID = T1.ID and T.SYS_ID = T1.SYS_ID
+		left join sys_user T2 on T.USER_ID = T2.ID 
+		left join sys_org T3 on T2.ORG_ID = T3.ID 
+		where 1 = 1
+		and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<if test="'all' != extMap.flag_">
+			and T.READ_STATUS in ('2' ,'3')
+		</if>
+		<if test="null != id and '' != id">
+			and T.ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != msgId and '' != msgId">
+			and T.MSG_ID = #{msgId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != userId and '' != userId">
+			and T.USER_ID = #{userId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != msgType and '' != msgType">
+			<choose>
+				<when test="'!9' == msgType">
+					<![CDATA[ and T1.MSG_TYPE <> '9' ]]>
+				</when>
+				<otherwise>
+					and T1.MSG_TYPE in(${msgType}) 
+				</otherwise>
+			</choose>
+		</if>
+		<if test="null != readStatus and '' != readStatus">
+			and T.READ_STATUS = #{readStatus,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (T1.MSG_TITLE like '%${keywords}%'
+			or T2.USER_NAME like '%${keywords}%'
+			or T2.USER_ALIAS like '%${keywords}%'
+			or T3.ORG_NAME like '%${keywords}%')
+		</if>
+		
+		<if test="null != titles and '' != titles">
+			and T1.MSG_TITLE like '%${titles}%' 
+			
+			
+		</if>
+		<if test="null != startTime and '' != startTime">
+			AND T.CREATED >=DATE_FORMAT(#{startTime}, '%Y-%m-%d
+			00:00:00')
+		</if>
+		<if test="null != endTime and '' != startTime">
+			AND T.CREATED &lt;=
+			DATE_FORMAT(DATE_ADD(#{endTime},INTERVAL 1
+			DAY),'%Y-%m-%d 00:00:00')
+		</if>
+	</select>
+	<!-- 针对 MSG_CONTENT字段导致的一些查询慢单独处理，因为之前的java做了处理，但是sql没处理 -->
+	<select id="selectByPrimaryKey_01" parameterType="cn.scihi.sys.pojo.MsgRecord"
+		resultMap="BaseResultMap">
+		select
+		T.ID, T.SYS_ID, T.MSG_ID, T.USER_ID, T.READ_STATUS, T1.MSG_TYPE, T1.MSG_TITLE, T1.MSG_LEVEL, 
+		T.CREATER, T.CREATED, T.MODIFIER, T.MODIFIED, T.ROW_VERSION, T2.USER_NAME, T2.USER_ALIAS, T3.ORG_NAME,
+		T2.MOBILE_PHONE
+		<if test="null != ext3 and '' != ext3">
+			,1 as "EXT3"
+		</if>
+		from sys_msg_record T
+		left join sys_msg T1 on T.MSG_ID = T1.ID and T.SYS_ID = T1.SYS_ID
+		left join sys_user T2 on T.USER_ID = T2.ID 
+		left join sys_org T3 on T2.ORG_ID = T3.ID 
+		where 1 = 1
+		and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<if test="'all' != extMap.flag_">
+			and T.READ_STATUS in ('2' ,'3')
+		</if>
+		<if test="null != id and '' != id">
+			and T.ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != msgId and '' != msgId">
+			and T.MSG_ID = #{msgId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != userId and '' != userId">
+			and T.USER_ID = #{userId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != msgType and '' != msgType">
+			<choose>
+				<when test="'!9' == msgType">
+					<![CDATA[ and T1.MSG_TYPE <> '9' ]]>
+				</when>
+				<otherwise>
+					and T1.MSG_TYPE in(${msgType}) 
+				</otherwise>
+			</choose>
+		</if>
+		<if test="null != readStatus and '' != readStatus">
+			and T.READ_STATUS = #{readStatus,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (T1.MSG_TITLE like '%${keywords}%'
+			or T2.USER_NAME like '%${keywords}%'
+			or T2.USER_ALIAS like '%${keywords}%'
+			or T3.ORG_NAME like '%${keywords}%')
+		</if>
+		
+		<if test="null != titles and '' != titles">
+			and T1.MSG_TITLE like '%${titles}%' 
+			
+			
+		</if>
+		<if test="null != startTime and '' != startTime">
+			AND T.CREATED >=DATE_FORMAT(#{startTime}, '%Y-%m-%d
+			00:00:00')
+		</if>
+		<if test="null != endTime and '' != startTime">
+			AND T.CREATED &lt;=
+			DATE_FORMAT(DATE_ADD(#{endTime},INTERVAL 1
+			DAY),'%Y-%m-%d 00:00:00')
+		</if>
+		
+		
+		order by T.READ_STATUS ASC,T1.MSG_LEVEL desc,T.CREATED   desc
+		<if test="null != extMap.limitCount_ and '' != extMap.limitCount_">
+			limit 0,#{extMap.limitCount_,jdbcType=INTEGER}
+		</if>
+	</select>
+	<delete id="deleteMsgRecordByMsgId" parameterType="java.lang.String">
+		delete from sys_msg_record where MSG_ID = #{msgId,jdbcType=VARCHAR};
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.MsgRecord">
+		insert into sys_msg_record (
+		ID,
+		SYS_ID,
+		MSG_ID,
+		USER_ID,
+		READ_STATUS,
+		CREATER,
+		CREATED,
+		MODIFIER,
+		MODIFIED,
+		ROW_VERSION
+		)
+		values
+		(#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{msgId,jdbcType=VARCHAR},
+		#{userId,jdbcType=VARCHAR},
+		#{readStatus,jdbcType=VARCHAR},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{rowVersion,jdbcType=DECIMAL}
+		)
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.sys.pojo.MsgRecord">
+		update sys_msg_record
+		set
+		READ_STATUS = #{readStatus,jdbcType=VARCHAR},
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+	<update id="updateByUserName" parameterType="cn.scihi.sys.pojo.MsgRecord">
+		update sys_msg_record
+		set
+		READ_STATUS = '3',
+		MODIFIER = #{userName,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		where 
+		USER_ID = (select ID from sys_user where USER_NAME = #{userName,jdbcType=VARCHAR})
+		and READ_STATUS = '2' 
+		and	MSG_ID in (select id from sys_msg where MSG_TYPE = '9')
+	</update>
+	<select id="queryMsgOrRewardSurveyUnreadCount" parameterType="java.util.HashMap"
+		resultType="java.util.HashMap">
+		SELECT IFNULL(SUM(IF(sm.MSG_TYPE=1,1,0)),0) ywpxCount,IFNULL(SUM(IF(sm.MSG_TYPE=2,1,0)),0) cjzccdCount ,
+		(SELECT COUNT(*)  FROM t_reward_survey_record WHERE FD_STATUS =0 AND
+		USER_ID=#{userId} AND SYS_ID=#{sysId}) cjjdNoticeCount
+		FROM sys_msg_record smr 
+		LEFT JOIN sys_msg sm ON sm.ID=smr.MSG_ID
+		WHERE smr.USER_ID=#{userId} AND smr.READ_STATUS='2' AND smr.SYS_ID=#{sysId} 
+	</select> 
+</mapper>

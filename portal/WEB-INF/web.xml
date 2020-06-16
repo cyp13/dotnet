@@ -1,0 +1,241 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance http://www.springmodules.org/schema/cache/springmodules-cache.xsd http://www.springmodules.org/schema/cache/springmodules-ehcache.xsd"
+	xmlns="http://java.sun.com/xml/ns/javaee"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_3_0.xsd"
+	id="portal" version="3.0">
+	<display-name>Unified Identification Application Integrated Platform</display-name>
+	<context-param>
+		<param-name>webAppRootKey</param-name>
+		<param-value>portal.root</param-value>
+	</context-param>
+	<context-param>
+		<param-name>log4jConfigLocation</param-name>
+		<param-value>classpath:logging.properties</param-value>
+	</context-param>
+	<context-param>
+		<param-name>log4jRefreshInterval</param-name>
+		<param-value>60000</param-value>
+	</context-param>
+	<listener>
+		<listener-class>org.springframework.web.util.Log4jConfigListener</listener-class>
+	</listener>
+	<context-param>
+		<param-name>contextConfigLocation</param-name>
+		<param-value>classpath:conf/spring-beanRef.xml</param-value>
+	</context-param>
+	<listener>
+		<listener-class>cn.scihi.commons.listener.MyContextLoaderListener</listener-class>
+	</listener>
+	<listener>
+		<listener-class>org.springframework.web.context.request.RequestContextListener</listener-class>
+	</listener>
+	<listener>
+		<description>Spring刷新Interceptor防止内存泄漏</description>
+		<listener-class>org.springframework.web.util.IntrospectorCleanupListener</listener-class>
+	</listener>
+	<listener>
+		<description>Spring Security防用户重复登录</description>
+		<listener-class>org.springframework.security.web.session.HttpSessionEventPublisher</listener-class>
+	</listener>
+	<servlet>
+		<servlet-name>springmvc</servlet-name>
+		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
+		<init-param>
+			<param-name>contextConfigLocation</param-name>
+			<param-value>classpath:conf/spring/spring-servlet.xml</param-value>
+		</init-param>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>springmvc</servlet-name>
+		<url-pattern>*.do</url-pattern>
+	</servlet-mapping>
+	<filter>
+		<filter-name>springSecurityFilterChain</filter-name>
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>springSecurityFilterChain</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+	
+	<!-- 
+	<filter>
+	    <filter-name>xssFilter</filter-name>
+	    <filter-class>cn.scihi.commons.filter.XSSFilter</filter-class>
+	  </filter>
+   <filter-mapping>
+     <filter-name>xssFilter</filter-name>
+     <url-pattern>*.do</url-pattern>
+   </filter-mapping>
+    -->
+    
+    <!-- 
+    	相关安全处理：
+    	
+    	X-Content-Type-Options：通过这个响应头可以禁用浏览器的类型猜测行为
+    	X-XSS-Protection：用来防范XSS的，现在主流浏览器都支持，并且默认都开启了XSS保护
+    	Content-Security-Policy：用来定义页面可以加载哪些资源，减少XSS的发生
+    	X-Frame-Option：为了减少点击劫持（Clickjacking）而引入的一个响应头
+    	
+    	从8.0.23版本开始，tomcat支持在它自带的web.xml里配置HttpHeaderSecurityFilter，这是一个可选项，默认不开启该filter    	
+     -->
+     <!-- ================== Built In Filter Definitions ===================== -->
+
+  <!-- A filter that sets various security related HTTP Response headers.   -->
+  <!-- This filter supports the following initialization parameters         -->
+  <!-- (default values are in square brackets):                             -->
+  <!--                                                                      -->
+  <!--   hstsEnabled         Should the HTTP Strict Transport Security      -->
+  <!--                       (HSTS) header be added to the response? See    -->
+  <!--                       RFC 6797 for more information on HSTS. [true]  -->
+  <!--                                                                      -->
+  <!--   hstsMaxAgeSeconds   The max age value that should be used in the   -->
+  <!--                       HSTS header. Negative values will be treated   -->
+  <!--                       as zero. [0]                                   -->
+  <!--                                                                      -->
+  <!--   hstsIncludeSubDomains                                              -->
+  <!--                       Should the includeSubDomains parameter be      -->
+  <!--                       included in the HSTS header.                   -->
+  <!--                                                                      -->
+  <!--   antiClickJackingEnabled                                            -->
+  <!--                       Should the anti click-jacking header           -->
+  <!--                       X-Frame-Options be added to every response?    -->
+  <!--                       [true]                                         -->
+  <!--                                                                      -->
+  <!--   antiClickJackingOption                                             -->
+  <!--                       What value should be used for the header. Must -->
+  <!--                       be one of DENY, SAMEORIGIN, ALLOW-FROM         -->
+  <!--                       (case-insensitive). [DENY]                     -->
+  <!--                                                                      -->
+  <!--   antiClickJackingUri IF ALLOW-FROM is used, what URI should be      -->
+  <!--                       allowed? []                                    -->
+  <!--                                                                      -->
+  <!--   blockContentTypeSniffingEnabled                                    -->
+  <!--                       Should the header that blocks content type     -->
+  <!--                       sniffing be added to every response? [true]    -->
+	<!--
+	    <filter>
+	        <filter-name>httpHeaderSecurity</filter-name>
+	        <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+	        <async-supported>true</async-supported>
+	    </filter>
+	-->
+	
+	<!-- 只允许同源请求 -->
+     <!-- <filter>
+        <filter-name>httpHeaderSecurity</filter-name>
+        <filter-class>org.apache.catalina.filters.HttpHeaderSecurityFilter</filter-class>
+        <init-param>
+            <param-name>antiClickJackingOption</param-name>            
+            <param-value>SAMEORIGIN</param-value>
+        </init-param>
+        <async-supported>true</async-supported>
+    </filter>        
+    <filter-mapping>
+        <filter-name>httpHeaderSecurity</filter-name>
+        <url-pattern>/*</url-pattern>
+    </filter-mapping> 
+    
+    <session-config>  
+    	<session-timeout>60</session-timeout>
+		 <cookie-config>  
+			<http-only>true</http-only>
+		</cookie-config>   
+	</session-config> -->
+        
+     <!-- <filter> 
+        <filter-name>NoCache</filter-name> 
+        <filter-class>cn.scihi.commons.filter.CacheFilter</filter-class> 
+        <init-param> 
+            <param-name>Cache-Control</param-name> 
+            <param-value>no-cache, must-revalidate</param-value> 
+        </init-param> 
+    </filter> 
+    <filter> 
+        <filter-name>CacheForWeek</filter-name> 
+        <filter-class>cn.scihi.commons.filter.CacheFilter</filter-class> 
+        <init-param> 
+            <param-name>Cache-Control</param-name> 
+            <param-value>max-age=604800</param-value> 
+        </init-param> 
+    </filter> 
+
+    <filter-mapping> 
+        <filter-name>CacheForWeek</filter-name> 
+        <url-pattern>*.js</url-pattern> 
+    </filter-mapping> 
+    <filter-mapping> 
+        <filter-name>CacheForWeek</filter-name> 
+        <url-pattern>*.css</url-pattern> 
+    </filter-mapping> 
+    <filter-mapping> 
+        <filter-name>CacheForWeek</filter-name> 
+        <url-pattern>*.gif</url-pattern> 
+    </filter-mapping> -->
+    
+   <filter>
+     <filter-name>FileRequestFilter</filter-name>
+     <filter-class>cn.scihi.commons.interceptor.FileRequestFilter</filter-class>
+   </filter>
+   <filter-mapping>
+     <filter-name>FileRequestFilter</filter-name>
+     <url-pattern>/uploads/*</url-pattern>
+   </filter-mapping>
+	
+	<servlet>
+		<servlet-name>CXFServlet</servlet-name>
+		<servlet-class>org.apache.cxf.transport.servlet.CXFServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>CXFServlet</servlet-name>
+		<url-pattern>/api/ws/*</url-pattern>
+	</servlet-mapping>
+	<servlet-mapping>
+		<servlet-name>CXFServlet</servlet-name>
+		<url-pattern>/api/service/*</url-pattern>
+	</servlet-mapping>
+	<servlet>
+		<servlet-name>ImageServlet</servlet-name>
+		<servlet-class>net.sf.jasperreports.j2ee.servlets.ImageServlet</servlet-class>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>ImageServlet</servlet-name>
+		<url-pattern>/images/report/px.png</url-pattern>
+	</servlet-mapping>
+	<error-page>
+		<error-code>400</error-code>
+		<location>/jsp/common/error.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>401</error-code>
+		<location>/jsp/common/error.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>403</error-code>
+		<location>/jsp/common/error.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>404</error-code>
+		<location>/jsp/common/error.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>405</error-code>
+		<location>/jsp/common/error.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/jsp/common/error.jsp</location>
+	</error-page>
+	<error-page>
+		<exception-type>java.lang.Exception</exception-type>
+		<location>/jsp/common/error.jsp</location>
+	</error-page>
+	<welcome-file-list>
+		<welcome-file>login.do</welcome-file>
+	</welcome-file-list>
+	<session-config>
+		<session-timeout>60</session-timeout>
+	</session-config>
+</web-app>

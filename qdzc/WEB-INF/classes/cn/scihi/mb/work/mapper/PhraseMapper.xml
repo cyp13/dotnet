@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.PhraseMapper">
+	<select id="queryPhrase" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select
+		t.id as "id",
+		t.corporate_identify as "corporate_identify",
+		t.type as "type",
+		t.property as "property",
+		t.title as "title",
+		t.content as "content",
+		t.creater as "creater",
+		t.created as "created",
+		t.modifier as "modifier",
+		t.modified as "modified",
+		t.row_valid as "row_valid",
+		d3.DICT_NAME as "type_name",
+		d2.DICT_NAME as "property_name",
+		d.DICT_NAME as "row_valid_name"
+		from t_work_phrase t
+		left join sys_dict d
+		on t.row_valid = d.dict_value and d.parent_id='rowValid'
+		left join sys_dict d2
+		on t.property = d2.dict_value and d2.parent_id='phraseProperty'
+		left join sys_dict d3
+		on t.type = d3.dict_value and d3.parent_id='phraseType'
+		
+		
+		where 1=1
+		 <if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+		<if test="null != corporate_identify and '' != corporate_identify">
+			and t.corporate_identify = #{corporate_identify}
+		</if>
+		<if test="null != title and '' != title">
+			and t.title = #{title}
+		</if>
+		<if test="null != content and '' != content">
+			and t.content = #{content}
+		</if>
+		<if test="null != type and '' != type">
+			and t.type = #{type}
+		</if>  
+		
+		 <if test="null != userName and '' != userName">
+			
+			and (property = '1' or (property = '2' and t.creater = #{userName}))
+		</if> 
+		
+		 <if test="null != row_valid and '' != row_valid">
+			and t.row_valid = #{row_valid}
+		</if> 
+		 
+		<if test="null != keywords and '' != keywords">
+			and (t.title like concat('%',#{keywords},'%')
+			or t.type like concat('%',#{keywords},'%'))
+		</if>
+		
+		
+		<choose>
+			<when test="null != orderStr and '' != orderStr">
+				${orderStr}
+			</when>
+			<otherwise>
+				order by CREATED desc
+			</otherwise>
+		</choose>
+	</select>
+
+	<insert id="insertPhrase" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select
+			uuid()
+		</selectKey>
+		insert into
+		t_work_phrase(id,corporate_identify,type,property,title,content,creater,created,modifier,modified,row_valid)
+		values(#{id},#{corporate_identify},#{type},#{property},#{title},#{content},#{userName},now(),#{userName},now(),#{row_valid}) 
+		
+	</insert>
+	
+	
+	<update id="updatePhrase" parameterType="java.util.HashMap">
+		update t_work_phrase set
+		<if test="null != corporate_identify and '' != corporate_identify">
+			corporate_identify=#{corporate_identify},
+		</if>
+		<if test="null != type and '' != type">
+			type=#{type},
+		</if>
+		<if test="null != property and '' != property">
+			property=#{property},
+		</if>
+		<if test="null != title and '' != title">
+			title=#{title},
+		</if>
+		<if test="null != content and '' != content">
+			content=#{content},
+		</if>
+		<if test="null != row_valid and '' != row_valid">
+			row_valid=#{row_valid},
+		</if>
+		modifier=#{userName},
+		modified=now()
+		where id=#{id}
+		
+	</update>
+	
+
+	<delete id="deletePhrase" parameterType="java.lang.String">
+		delete from
+		t_work_phrase
+		where
+		id=#{id}
+	</delete>
+</mapper>

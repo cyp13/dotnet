@@ -1,0 +1,188 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.sys.mapper.WorkTimeMapper">
+	<select id="queryWorkTime" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select
+		t.id as "id",
+		t.type as "type",
+		t.enterprise_flag as
+		"enterprise_flag",
+		t.group_id as "group_id",
+		t.valid_start_date as
+		"valid_start_date",
+		substr(t.valid_end_date,1,5) as "valid_end_date",
+		t.valid_start_date_2 as "valid_start_date_2",
+		substr(t.valid_end_date_2,1,5) as "valid_end_date_2",
+		t.work_week as
+		"work_week",
+		t.work_time as "work_time",
+		t.rest_time as "rest_time",
+		t.work_time_2 as "work_time_2",
+		t.rest_time_2 as "rest_time_2",
+		t.creater as "creater",
+		t.created as "created",
+		t.modified as
+		"modified",
+		t.modifier as "modifier",
+		t.remark as "remark",
+		t.row_version as "row_version",
+		t.row_valid as "row_valid",
+		t.row_default as "row_default",
+		t.ext1 as "ext1",
+		t.ext2 as "ext2",
+		t.ext3 as "ext3"
+		from t_sys_work_time t where 1=1
+		<if test="null != id and '' != id">
+			and ID = #{id}
+		</if>
+		<if test="null != creater and '' != creater">
+			and CREATER = #{creater}
+		</if>
+		<if test="null != enterprise_flag and '' != enterprise_flag">
+			and enterprise_flag = #{enterprise_flag}
+		</if>
+		<if test="null != group_id and '' != group_id">
+			and group_id = #{group_id}
+		</if>
+		<if test="null != type and '' != type">
+			and type = #{type}
+		</if>
+		<choose>
+			<when test="null != orderStr and '' != orderStr">
+				${orderStr}
+			</when>
+			<otherwise>
+				order by CREATED desc
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="queryIfOnWork" parameterType="java.util.HashMap"
+		resultType="java.lang.Integer">
+		select count(1) r from t_sys_work_time aa
+		where  row_valid = '1' 
+		<if test="null != enterprise_flag and '' != enterprise_flag">
+			and enterprise_flag = #{enterprise_flag}
+		</if>
+		<if test="null != group_id and '' != group_id">
+			and group_id = #{group_id}
+		</if>
+		<if test="null != type and '' != type">
+			and type = #{type}
+		</if>
+		and
+		(( <!--当前日期是夏令时 -->
+		month(now()) * 100 + day(now())
+		between substr(valid_start_date, 7,
+		1)*10000+substr(valid_start_date, 1,
+		2)*100+substr(valid_start_date, 4,
+		2)
+		and substr(valid_end_date, 7, 1)*10000+substr(valid_end_date, 1,
+		2)*100+substr(valid_end_date, 4, 2)
+		)
+		and
+		(<!-- 并且在夏令时工作时间内 -->
+		hour(now()) * 100 + minute(now())
+		between substr(work_time, 7,
+		1)*10000+substr(work_time, 1,
+		2)*100+substr(work_time, 4, 2)
+		and
+		substr(rest_time, 7, 1)*10000+substr(rest_time, 1,
+		2)*100+substr(rest_time, 4, 2)
+		))
+		or
+		((<!-- 当前日期是冬令时 -->
+		month(now(now())) * 100 + day(now())
+		between substr(valid_start_date_2,
+		7, 1)*10000+substr(valid_start_date_2, 1,
+		2)*100+substr(valid_start_date_2, 4, 2)
+		and substr(valid_end_date_2, 7,
+		1)*10000+substr(valid_end_date_2, 1,
+		2)*100+substr(valid_end_date_2, 4,
+		2)
+		)
+		and
+		(<!-- 并且在冬令时工作时间内 -->
+		hour(now()) * 100 + minute(now())
+		between substr(work_time_2, 7,
+		1)*10000+substr(work_time_2, 1,
+		2)*100+substr(work_time_2, 4, 2)
+		and
+		substr(rest_time_2, 7, 1)*10000+substr(rest_time_2, 1,
+		2)*100+substr(rest_time_2, 4, 2)
+		))
+
+	</select>
+
+	<insert id="insertWorkTime" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select
+			uuid()
+		</selectKey>
+		insert into
+		t_sys_work_time(id,enterprise_flag,group_id,type,valid_start_date,valid_end_date,work_time,rest_time,valid_start_date_2,valid_end_date_2,work_time_2,rest_time_2,work_week,creater,created,modifier,modified,row_version,row_valid)
+		values(#{id},#{enterprise_flag},#{group_id},#{type},#{valid_start_date},#{valid_end_date},#{work_time},#{rest_time},#{valid_start_date_2},#{valid_end_date_2},#{work_time_2},#{rest_time_2},#{work_week},#{userName},now(),#{userName},now(),#{row_version},#{row_valid})
+	</insert>
+
+	<update id="updateWorkTime" parameterType="java.util.HashMap">
+		update t_sys_work_time set
+		<if test="null != valid_start_date and '' != valid_start_date">
+			valid_start_date=#{valid_start_date},
+		</if>
+		<if test="null != valid_end_date and '' != valid_end_date">
+			valid_end_date=#{valid_end_date},
+		</if>
+		<if test="null != work_time and '' != work_time">
+			work_time=#{work_time},
+		</if>
+		<if test="null != rest_time and '' != rest_time">
+			rest_time=#{rest_time},
+		</if>
+		<if test="null != valid_start_date_2 and '' != valid_start_date_2">
+			valid_start_date_2=#{valid_start_date_2},
+		</if>
+		<if test="null != valid_end_date_2 and '' != valid_end_date_2">
+			valid_end_date_2=#{valid_end_date_2},
+		</if>
+		<if test="null != work_time_2 and '' != work_time_2">
+			work_time_2=#{work_time_2},
+		</if>
+		<if test="null != rest_time_2 and '' != rest_time_2">
+			rest_time_2=#{rest_time_2},
+		</if>
+		<if test="null != work_week and '' != work_week">
+			work_week=#{work_week},
+		</if>
+		<if test="null != row_valid and '' != row_valid">
+			row_valid=#{row_valid},
+		</if>
+		<if test="null != ext1 and '' != ext1">
+			ext1=#{ext1},
+		</if>
+		<if test="null != ext2 and '' != ext2">
+			ext2=#{ext2},
+		</if>
+		<if test="null != ext3 and '' != ext3">
+			ext3=#{ext3},
+		</if>
+		row_version=#{row_version},
+		modifier=#{userName},
+		modified=now()
+		where
+		id=#{id}
+	</update>
+
+	<delete id="deleteWorkTime" parameterType="java.lang.String">
+		delete from t_sys_work_time where
+		<choose>
+			<when test="null != _parameter and '' != _parameter">
+				id=#{id}
+			</when>
+			<otherwise>
+				1=1
+			</otherwise>
+		</choose>
+	</delete>
+</mapper>

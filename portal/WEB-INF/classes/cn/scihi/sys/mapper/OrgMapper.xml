@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.OrgMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.Org">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="PARENT_ID" jdbcType="VARCHAR" property="parentId" />
+		<result column="ORG_CODE" jdbcType="VARCHAR" property="orgCode" />
+		<result column="ORG_NAME" jdbcType="VARCHAR" property="orgName" />
+		<result column="ORG_TYPE" jdbcType="VARCHAR" property="orgType" />
+		<result column="ORG_ATTR" jdbcType="VARCHAR" property="orgAttr" />
+		<result column="ORG_LEVEL" jdbcType="VARCHAR" property="orgLevel" />
+		<result column="AREA_CODE" jdbcType="VARCHAR" property="areaCode" />
+		<result column="ORG_LNG" jdbcType="VARCHAR" property="orgLng" />
+		<result column="ORG_LAT" jdbcType="VARCHAR" property="orgLat" />
+		<result column="ORG_ADDRESS" jdbcType="VARCHAR" property="orgAddress" />
+		<result column="OUTSIDE_LINE" jdbcType="VARCHAR" property="outsideLine" />
+		<result column="INSIDE_LINE" jdbcType="VARCHAR" property="insideLine" />
+		<result column="ORG_ICON" jdbcType="VARCHAR" property="orgIcon" />
+		<result column="SORT_NO" jdbcType="INTEGER" property="sortNo" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+		
+		<result column="PARENT_NAME" jdbcType="VARCHAR" property="parentName" />
+		<result column="CHILDS" jdbcType="INTEGER" property="childs" />
+		<result column="ORG_PATH" jdbcType="VARCHAR" property="orgPath" />
+	</resultMap>
+	<select id="queryOrg" parameterType="cn.scihi.sys.pojo.Org"
+		resultMap="BaseResultMap">
+		select 
+		distinct
+		T.ID as "ID",
+		T.SYS_ID as "SYS_ID",
+		T.PARENT_ID as "PARENT_ID",
+		T3.ORG_NAME as "PARENT_NAME",
+		T.ORG_CODE as "ORG_CODE", 
+		T.ORG_NAME as "ORG_NAME", 
+		T.ORG_TYPE as "ORG_TYPE", 
+		T.ORG_ATTR as "ORG_ATTR", 
+		T.ORG_LEVEL as "ORG_LEVEL", 
+		T.AREA_CODE as "AREA_CODE", 
+		T.ORG_LNG as "ORG_LNG",
+		T.ORG_LAT as "ORG_LAT",
+		T.ORG_ADDRESS as "ORG_ADDRESS",
+		T.OUTSIDE_LINE as "OUTSIDE_LINE",
+		T.INSIDE_LINE as "INSIDE_LINE",
+		T.ORG_ICON as "ORG_ICON",
+		T.SORT_NO as "SORT_NO",
+		T.CREATER as "CREATER",
+		T.CREATED as "CREATED",
+		T.MODIFIER as "MODIFIER",
+		T.MODIFIED as "MODIFIED",
+		T.REMARK as "REMARK",
+		T.ROW_DEFAULT as "ROW_DEFAULT",
+		T.ROW_VALID as "ROW_VALID",
+		T.EXT1 as "EXT1",
+		T.EXT2 as "EXT2",
+		T.EXT3 as "EXT3",
+		T.ROW_VERSION as "ROW_VERSION",
+		T.ORG_PATH as "ORG_PATH",
+		count(T2.ID) as "CHILDS"
+		from sys_org T
+		left join sys_org T2 on T.ID = T2.PARENT_ID <!-- and T.SYS_ID = T2.SYS_ID -->
+		<if test="null != rowValid and '' != rowValid">
+			and T2.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		left join sys_org T3 on T.PARENT_ID = T3.ID <!-- and T.SYS_ID = T3.SYS_ID -->
+		where 1=1
+		<![CDATA[ and T.ROW_VALID <> '9' ]]>
+		<if test="null !=id and '' != id">
+			<choose>
+				<when test="id.indexOf(',') != -1">
+					and T.ID in (
+					<foreach collection="id.split(',')" item="oId" index="index" separator=",">
+						#{oId}
+					</foreach>
+					)
+				</when>
+				<otherwise>
+					and T.ID = #{id,jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+		<if test="null !=sysId and '' !=sysId">
+			and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != parentId and '' != parentId">
+			and T.PARENT_ID = #{parentId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != orgCode and '' != orgCode">
+			and T.ORG_CODE = #{orgCode,jdbcType=VARCHAR}
+		</if>
+		<!-- <if test="null != orgName and '' != orgName">
+			and T.ORG_NAME like '%${orgName}%'
+		</if> -->
+		<if test="null != orgType and '' != orgType">
+			and T.ORG_TYPE = #{orgType,jdbcType=VARCHAR}
+		</if>
+		<if test="null != orgAttr and '' != orgAttr">
+			and T.ORG_ATTR = #{orgAttr,jdbcType=VARCHAR}
+		</if>
+		<if test="null != orgLevel and '' != orgLevel">
+			and T.ORG_LEVEL = #{orgLevel,jdbcType=VARCHAR}
+		</if>
+		<if test="null != areaCode and '' != areaCode">
+			and T.AREA_CODE = #{areaCode,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and T.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != ext1 and '' != ext1">
+			and t.EXT1 = #{ext1,jdbcType=VARCHAR}
+		</if>
+		
+		<if test="null != orgPath and '' != orgPath">
+			and (T.ORG_PATH like '${orgPath}%')
+		</if>
+		
+		<if test="null != keywords and '' != keywords">
+			and (T.ORG_CODE like '%${keywords}%'
+			or T.ORG_NAME like '%${keywords}%')
+		</if>
+		group by T.ID,T.SYS_ID,T.PARENT_ID,T3.ORG_NAME,T.ORG_CODE,T.ORG_NAME,T.ORG_TYPE,T.ORG_ATTR,T.ORG_LEVEL,T.AREA_CODE,
+			T.ORG_LNG,T.ORG_LAT,T.ORG_ADDRESS,T.OUTSIDE_LINE,T.INSIDE_LINE,T.ORG_ICON,T.SORT_NO,T.CREATER,T.CREATED,
+			T.MODIFIER,T.MODIFIED,T.REMARK,T.ROW_DEFAULT,T.ROW_VALID,T.EXT1,T.EXT2,T.EXT3,T.ROW_VERSION,T.ORG_PATH 
+		order by T.SORT_NO, T.CREATED desc
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from sys_org where ID = #{id,jdbcType=VARCHAR} <![CDATA[ and ROW_DEFAULT <> '1' ]]>
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.Org">
+		insert into sys_org (
+		ID,
+		SYS_ID, 
+		PARENT_ID, 
+		ORG_CODE,
+		ORG_NAME, 
+		ORG_TYPE, 
+		ORG_ATTR, 
+		ORG_LEVEL, 
+		AREA_CODE, 
+		ORG_LNG,
+		ORG_LAT,
+		ORG_ADDRESS,
+		OUTSIDE_LINE,
+		INSIDE_LINE,
+		ORG_ICON,
+		SORT_NO,
+		CREATER, 
+		CREATED,
+		MODIFIER,
+		MODIFIED, 
+		REMARK,
+		ROW_DEFAULT,
+		ROW_VALID, 
+		EXT1, 
+		EXT2,
+		EXT3,
+		ROW_VERSION,
+		ORG_PATH)
+		values (
+		#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{parentId,jdbcType=VARCHAR},
+		<choose>
+			<when test="null == orgCode or '' == orgCode">
+				#{id,jdbcType=VARCHAR},
+			</when>
+			<otherwise>
+				#{orgCode,jdbcType=VARCHAR},
+			</otherwise>
+		</choose>
+		#{orgName,jdbcType=VARCHAR},
+		#{orgType,jdbcType=VARCHAR},
+		#{orgAttr,jdbcType=VARCHAR},
+		#{orgLevel,jdbcType=VARCHAR},
+		#{areaCode,jdbcType=VARCHAR},
+		#{orgLng,jdbcType=VARCHAR},
+		#{orgLat,jdbcType=VARCHAR},
+		#{orgAddress,jdbcType=VARCHAR},
+		#{outsideLine,jdbcType=VARCHAR},
+		#{insideLine,jdbcType=VARCHAR},
+		#{orgIcon,jdbcType=VARCHAR},
+		#{sortNo,jdbcType=INTEGER},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{remark,jdbcType=VARCHAR},
+		#{rowDefault,jdbcType=VARCHAR},
+		#{rowValid,jdbcType=VARCHAR},
+		#{ext1,jdbcType=VARCHAR},
+		#{ext2,jdbcType=VARCHAR},
+		#{ext3,jdbcType=VARCHAR},
+		#{rowVersion,jdbcType=DECIMAL},
+		#{orgPath,jdbcType=VARCHAR})
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.sys.pojo.Org">
+		update sys_org
+		set
+		PARENT_ID = #{parentId,jdbcType=VARCHAR},
+		ORG_CODE = #{orgCode,jdbcType=VARCHAR},
+		ORG_NAME = #{orgName,jdbcType=VARCHAR},
+		ORG_TYPE = #{orgType,jdbcType=VARCHAR},
+		ORG_ATTR = #{orgAttr,jdbcType=VARCHAR},
+		ORG_LEVEL = #{orgLevel,jdbcType=VARCHAR},
+		AREA_CODE = #{areaCode,jdbcType=VARCHAR},
+		ORG_LNG = #{orgLng,jdbcType=VARCHAR},
+		ORG_LAT = #{orgLat,jdbcType=VARCHAR},
+		ORG_ADDRESS = #{orgAddress,jdbcType=VARCHAR},
+		OUTSIDE_LINE = #{outsideLine,jdbcType=VARCHAR},
+		INSIDE_LINE = #{insideLine,jdbcType=VARCHAR},
+		ORG_ICON = #{orgIcon,jdbcType=VARCHAR},
+		SORT_NO = #{sortNo,jdbcType=INTEGER},
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		REMARK = #{remark,jdbcType=VARCHAR},
+		ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		EXT1 = #{ext1,jdbcType=VARCHAR},
+		EXT2 = #{ext2,jdbcType=VARCHAR},
+		EXT3 = #{ext3,jdbcType=VARCHAR},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL},
+		ORG_PATH = #{orgPath,jdbcType=VARCHAR}
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+	<update id="updateOrgPath" parameterType="java.util.Map">
+		update sys_org set ORG_PATH = #{orgPath,jdbcType=VARCHAR}
+		where ID in
+		<foreach collection="orgIds" index="index" item="item" open="(" separator="," close=")">
+			#{item.id,jdbcType=VARCHAR}
+		</foreach>
+	</update>
+	<select id="queryOrgName" parameterType="java.lang.String" resultType="java.lang.String">
+		select ORG_NAME from sys_org
+		where ID in (
+			<foreach collection="_parameter.split(',')" item="orgId" index="index" separator=",">
+				#{orgId}
+			</foreach>
+		)
+	</select>
+</mapper>

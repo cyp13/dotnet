@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.AboutIMMapper">
+
+<select id="queryUserByRole" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+	select
+	su.USER_ALIAS as serviceName
+	,su.USER_NAME as serviceAccount
+	from sys_user su
+	left join sys_user_role sur on sur.USER_ID = su.ID
+	left join sys_role sr on sr.ID = sur.ROLE_ID
+	where sr.ROLE_NAME = 'IM问答客服'
+	group by su.USER_NAME
+</select>
+
+<select id="queryRole" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+	select
+	sr.ID as roleId
+	,sr.ROLE_NAME as roleName
+	from sys_role sr
+	left join sys_user_role sur on sur.ROLE_ID = sr.ID
+	left join sys_user su on su.ID = sur.USER_ID
+	where sr.SYS_ID = '026b17ad-a099-45c1-beb5-316d300c7f23'
+	<if test="null != userName and '' != userName">
+		and su.USER_NAME = #{userName}
+	</if>
+	group by sr.ROLE_NAME
+</select>
+</mapper>

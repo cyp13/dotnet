@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.FileMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.File">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="PARENT_ID" jdbcType="VARCHAR" property="parentId" />
+		<result column="FILE_NAME" jdbcType="VARCHAR" property="fileName" />
+		<result column="FILE_EXT" jdbcType="VARCHAR" property="fileExt" />
+		<result column="FILE_SIZE" jdbcType="DECIMAL" property="fileSize" />
+		<result column="FILE_VERSION" jdbcType="INTEGER" property="fileVersion" />
+		<result column="RELATED_ID" jdbcType="VARCHAR" property="relatedId" />
+		<result column="SORT_NO" jdbcType="INTEGER" property="sortNo" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+		
+		<result column="PARENT_NAME" jdbcType="VARCHAR" property="parentName" />
+		<result column="CHILDS" jdbcType="INTEGER" property="childs" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		T.ID, T.SYS_ID, T.PARENT_ID, T.FILE_NAME, T.FILE_EXT, T.FILE_SIZE, T.FILE_VERSION, T.RELATED_ID, 
+		T.SORT_NO, T.CREATER, T.CREATED, T.MODIFIER, T.MODIFIED, T.REMARK, T.ROW_DEFAULT, T.ROW_VALID, 
+		T.EXT2, T.EXT3, T.ROW_VERSION
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="cn.scihi.sys.pojo.File"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />,T4.USER_ALIAS AS "EXT1",T3.FILE_NAME as "PARENT_NAME", count(T2.ID) as "CHILDS"
+		from sys_file T
+		left join sys_file T2 on T.ID = T2.PARENT_ID and T.SYS_ID = T2.SYS_ID	<!-- PARENT_ID需要手动加索引 -->
+		<if test="null != rowValid and '' != rowValid">
+			and T2.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != fileExt and '' != fileExt">
+			and T2.FILE_EXT = #{fileExt,jdbcType=VARCHAR}
+		</if>
+		left join sys_file T3 on T.PARENT_ID = T3.ID and T.SYS_ID = T3.SYS_ID
+		left join sys_user T4 on T.CREATER = T4.USER_NAME
+		where 1 = 1
+		<![CDATA[ and T.ROW_VALID <> '9' ]]>
+		<if test="null != id and '' != id">
+			and T.ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != sysId and '' != sysId">
+			and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != parentId and '' != parentId">
+			and T.PARENT_ID = #{parentId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != fileName and '' != fileName">
+			and T.FILE_NAME = #{fileName,jdbcType=VARCHAR}
+		</if>
+		<if test="null != fileExt and '' != fileExt">
+			and T.FILE_EXT = #{fileExt,jdbcType=VARCHAR}
+		</if>
+		<if test="null != fileVersion and '' != fileVersion">
+			and T.FILE_VERSION = #{fileVersion,jdbcType=INTEGER}
+		</if>
+		<if test="null != relatedId and '' != relatedId">
+			and T.RELATED_ID = #{relatedId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and T.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != remark and '' != remark">
+			and T.REMARK = #{remark,jdbcType=VARCHAR}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (T.FILE_NAME like '%${keywords}%'
+				or T.FILE_EXT like '%${keywords}%'
+				or T.RELATED_ID like '%${keywords}%')
+		</if>
+		<if test="null != startTime and '' != startTime and null != endTime and '' != endTime">
+			and T.CREATED between #{startTime,jdbcType=TIMESTAMP} and #{endTime,jdbcType=TIMESTAMP}
+		</if>
+		<if test="null != creater and '' != creater">
+			and T.CREATER = #{creater,jdbcType=VARCHAR}
+		</if>
+		group by <include refid="Base_Column_List" />,T4.USER_ALIAS,T3.FILE_NAME
+		order by T.SORT_NO, T.CREATED desc
+		<if test="-1 == sortNo">
+		limit 0,1
+		</if>
+	</select>
+	
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from sys_file where ID = #{id,jdbcType=VARCHAR} <![CDATA[ and ROW_DEFAULT <> '1' ]]>
+	</delete>
+	
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.File">
+		insert into sys_file (
+		ID,
+		SYS_ID,
+		PARENT_ID,
+		FILE_NAME, 
+		FILE_EXT, 
+		FILE_SIZE, 
+		FILE_VERSION, 
+		RELATED_ID, 
+		SORT_NO,
+		CREATER,
+		CREATED,
+		MODIFIER,
+		MODIFIED,
+		REMARK,
+		ROW_DEFAULT,
+		ROW_VALID,
+		EXT1, EXT2, EXT3,
+		ROW_VERSION
+		)
+		values
+		(#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{parentId,jdbcType=VARCHAR},
+		#{fileName,jdbcType=VARCHAR},
+		#{fileExt,jdbcType=VARCHAR},
+		#{fileSize,jdbcType=DECIMAL},
+		#{fileVersion,jdbcType=INTEGER},
+		#{relatedId,jdbcType=VARCHAR},
+		#{sortNo,jdbcType=INTEGER},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{remark,jdbcType=VARCHAR},
+		#{rowDefault,jdbcType=VARCHAR},
+		#{rowValid,jdbcType=VARCHAR},
+		#{ext1,jdbcType=VARCHAR},
+		#{ext2,jdbcType=VARCHAR},
+		#{ext3,jdbcType=VARCHAR},
+		#{rowVersion,jdbcType=DECIMAL}
+		)
+	</insert>
+
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.sys.pojo.File">
+		update sys_file
+		set
+		FILE_NAME = #{fileName,jdbcType=VARCHAR},
+		FILE_VERSION = #{fileVersion,jdbcType=INTEGER},
+		SORT_NO = #{sortNo,jdbcType=INTEGER},
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		REMARK = #{remark,jdbcType=VARCHAR},
+		ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		EXT1 = #{ext1,jdbcType=VARCHAR},
+		EXT2 = #{ext2,jdbcType=VARCHAR},
+		EXT3 = #{ext3,jdbcType=VARCHAR},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

@@ -1,0 +1,329 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.GovEntAgencyMapper">
+	
+	<!-- 查询代办工单信息 -->
+	<select id="queryAgency" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select
+		t.id as "id",
+		tt.pid as "pid",
+		t.title as "title",
+		t.form_code as "form_code",
+		t.form_type as "form_type",
+		t.liquidated_damages as "liquidated_damages",
+		t.if_apply_reduction as "if_apply_reduction",
+		t.service_type as "service_type",
+		t.service_type_name as "service_type_name",
+		t.service_type_detail as "service_type_detail",
+		t.service_type_detail_name as "service_type_detail_name",
+		t.service_name as "service_name",
+		t.county as
+		"county",
+		o.org_name as "county_name",
+		t.branch_office as
+		"branch_office",
+		o2.org_name as "branch_office_name",
+		t.channel as
+		"channel",
+		o3.org_name as "channel_name",
+		t.channel_phone as
+		"channel_phone",
+		t.user_phone as "user_phone",
+		t.band_code as "band_code",
+		t.creater as "creater",
+		t.created as "created",
+		t.description as "description",
+		t.remark as "remark",
+		t.status as "status",
+		t.ext1 as "ext1",
+		t.ext2 as "ext2",
+		t.row_version as "row_version",
+		c.boss_code,
+		c.oper_code,
+		t.tag_ifsuccess,
+		jhp.STATE_
+		from t_work_gov_ent_agency t
+		left join sys_org o
+		on t.county = o.org_code
+		left join sys_org o2
+		on
+		t.branch_office = o2.org_code
+		left join sys_org o3
+		on t.channel =
+		o3.org_code
+		left join t_task tt
+		on t.id = tt.form_id
+		LEFT JOIN t_work_common c on t.FORM_CODE = c.form_code
+		left join jbpm4_hist_procinst jhp on jhp.ID_ = tt.PID
+		where 1=1
+		<if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+		<if test="null != pid and '' != pid">
+			and tt.pid = #{pid}
+		</if>
+		<if test="null != service_type and '' != service_type">
+			and t.service_type = #{service_type}
+		</if>
+		<if test="null != county and '' != county">
+			and t.county = #{county}
+		</if>
+		<if test="null != branch_office and '' != branch_office">
+			and t.branch_office = #{branch_office}
+		</if>
+		<if test="null != channel and '' != channel">
+			and t.channel = #{channel}
+		</if>
+		<if test="null != channel_phone and '' != channel_phone">
+			and t.channel_phone like  concat('%',#{channel_phone},'%')
+		</if>
+		<if test="null != user_phone and '' != user_phone">
+			and t.user_phone like  concat('%',#{user_phone},'%')
+		</if>
+		<choose>
+			<when test="null != orderStr and '' != orderStr">
+				${orderStr}
+			</when>
+			<otherwise>
+				order by t.CREATED desc
+			</otherwise>
+		</choose>
+	</select>
+
+	<!-- 新增代办工单信息 -->
+	<insert id="insertAgency" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select
+			uuid()
+		</selectKey>
+		
+		insert into
+		t_work_gov_ent_agency(id,title,form_code,form_type,service_type,service_type_name,service_name,county,branch_office,channel,channel_phone,user_phone,band_code,liquidated_damages,if_apply_reduction,creater,created,row_version,status,remark,description,enterprise_flag)
+		values(#{id},#{title},#{form_code},#{form_type},#{service_type},#{service_type_name},#{service_name},#{county},#{branch_office},#{channel},#{channel_phone},#{user_phone},#{band_code},#{liquidated_damages},#{if_apply_reduction},#{userName},now(),#{row_version},#{status},#{remark},#{description},#{enterprise_flag})
+	</insert>
+
+	<!-- 修改代办工单信息 -->
+	<update id="updateAgency" parameterType="java.util.HashMap">
+		update t_work_gov_ent_agency set
+		<if test="null != title and '' != title">
+			title=#{title},
+		</if>
+		<if test="null != service_type and '' != service_type">
+			service_type=#{service_type},
+		</if>
+		<if test="null != service_type_name and '' != service_type_name">
+			service_type_name=#{service_type_name},
+		</if>
+		<if test="null != service_type_detail and '' != service_type_detail">
+			service_type_detail=#{service_type_detail},
+		</if>
+		<if test="null != service_type_detail_name and '' != service_type_detail_name">
+			service_type_detail_name=#{service_type_detail_name},
+		</if>
+		<if test="null != service_name and '' != service_name">
+			service_name=#{service_name},
+		</if>
+		<if test="null != user_phone and '' != user_phone">
+			user_phone=#{user_phone},
+		</if>
+		<if test="null != liquidated_damages and '' != liquidated_damages">
+			liquidated_damages=#{liquidated_damages},
+		</if>
+		<if test="null != if_apply_reduction and '' != if_apply_reduction">
+			if_apply_reduction=#{if_apply_reduction},
+		</if>
+		<if test="null != description and '' != description">
+			description=#{description},
+		</if>
+		<if test="null != remark and '' != remark">
+			remark=#{remark},
+		</if>
+		<if test="null != status and '' != status">
+			status=#{status},
+		</if>
+		<if test="null != ext1 and '' != ext1">
+			ext1=#{ext1},
+		</if>
+		<if test="null != ext2 and '' != ext2">
+			ext2=#{ext2},
+		</if>
+		<if test="null != tag_ifsuccess and '' != tag_ifsuccess">
+			tag_ifsuccess=#{tag_ifsuccess},
+		</if>
+		row_version=#{row_version},
+		modifier=#{userName},
+		modified=now()
+		where id=#{id}
+	</update>
+
+	<!-- 删除代办工单信息 -->
+	<delete id="deleteAgency" parameterType="java.lang.String">
+		delete from
+		t_work_gov_ent_agency
+		where
+		id=#{id}
+	</delete>
+	
+	<!-- 插入支撑回复设置稽核boss相关的内容 -->
+	<insert id="insertReplySet" parameterType="java.util.HashMap">
+	   INSERT INTO t_work_common (
+			form_code,
+			boss_code,
+			oper_code,
+			oper_time
+		)
+		VALUES
+			(#{form_code}, #{boss_code}, #{oper_code}, NOW())
+	</insert>
+	
+	<!-- 新增的支撑设置之前，将老数据删除 -->
+	<delete id="deleteReplySet" parameterType="java.util.HashMap">
+	  	delete from t_work_common where form_code = #{form_code}
+	</delete>
+	
+	<!-- 根据类型查询对应的机构 -->
+	<select id="queryOrgTableAll" parameterType="java.util.HashMap" resultType="java.util.Map">
+ 			select ID,ORG_NAME  from sys_org where ORG_TYPE=#{ORG_TYPE}  AND ext1='MY'	 
+	</select>
+	
+	<!-- 查询报表数据 -->
+	<select id="queryReportData" parameterType="java.util.HashMap" resultType="java.util.Map">
+		SELECT DISTINCT jhp.DBID_, twa.FORM_CODE, twa.TITLE, dict1.DICT_TYPE, dict1.DICT_VALUE, dict1.DICT_NAME
+						, dict2.DICT_TYPE DICT_TYPE1, dict2.DICT_VALUE DICT_VALUE1, dict2.DICT_NAME DICT_NAME1
+						, minjht.USER_ALIAS
+						, if(jhp.STATE_='ended','已归档','流程中') state_
+						, DATE_FORMAT(jhp.START_, '%Y-%m-%d %H:%i:%s') start_, DATE_FORMAT(jhp.END_, '%Y-%m-%d %H:%i:%s') end_
+						, 0 cs
+						, minjht.END_ end_1, concat(TIMEDIFF(minjht.END_, jhp.START_),' ') timediff_first, concat(TIMEDIFF(jhp.END_, jhp.START_),' ') timediff_all
+						, twa.COUNTY, county.org_name county_name, twa.BRANCH_OFFICE, office.org_name office_name, twa.CHANNEL, channel.org_name channel_name
+						, twa.USER_PHONE, twa.LIQUIDATED_DAMAGES, twa.tag_ifsuccess,minjht.EXECUTION_ pid
+		FROM jbpm4_hist_procinst jhp
+		LEFT JOIN (
+				SELECT DISTINCT pid, FORM_ID FROM t_task 
+				WHERE 1=1
+				<if test="null != startTime and '' != startTime">
+					AND t_task.CREATED >= #{startTime}
+				</if>
+				<if test="null != endTime and '' != endTime">	
+					AND t_task.CREATED &lt; DATE_ADD(#{endTime},INTERVAL 1 day)				
+				</if>
+		) ttask ON ttask.pid=jhp.ID_
+		LEFT JOIN t_work_gov_ent_agency twa ON ttask.FORM_ID=twa.id
+		LEFT JOIN sys_dict dict1 ON dict1.PARENT_ID='mydbgd' AND dict1.DICT_VALUE=twa.SERVICE_TYPE
+		LEFT JOIN sys_dict dict2 ON dict2.PARENT_ID=dict1.DICT_TYPE AND dict2.DICT_VALUE=twa.SERVICE_TYPE_DETAIL
+		LEFT JOIN(
+				SELECT jha.HPROCI_, jha.END_, jht.ASSIGNEE_, sys_user.USER_ALIAS,jht.EXECUTION_
+				FROM jbpm4_hist_actinst jha
+				LEFT JOIN jbpm4_hist_task jht ON jha.HTASK_=jht.DBID_
+				LEFT JOIN sys_user ON jht.ASSIGNEE_=sys_user.USER_NAME
+				WHERE jha.DBID_=(SELECT min(jha1.DBID_) FROM jbpm4_hist_actinst jha1 WHERE jha1.HPROCI_=jha.HPROCI_ AND jha1.ACTIVITY_NAME_ LIKE '%支撑%')
+				<if test="null != startTime and '' != startTime">
+					AND jha.START_ >= #{startTime}
+				</if>
+				<if test="null != endTime and '' != endTime">
+					AND jha.START_ &lt; DATE_ADD(#{endTime},INTERVAL 1 day)
+				</if>
+		) minjht ON minjht.HPROCI_=jhp.DBID_
+		LEFT JOIN sys_org county ON twa.COUNTY=county.id
+		LEFT JOIN sys_org office ON twa.BRANCH_OFFICE=office.id
+		LEFT JOIN sys_org channel ON twa.CHANNEL=channel.ID
+		WHERE 1=1
+		AND jhp.PROCDEFID_ LIKE '政企支撑工单%'
+		<if test="null != startTime and '' != startTime">
+			AND jhp.START_ >= #{startTime}
+		</if>
+		<if test="null != endTime and '' != endTime">
+			AND jhp.START_ &lt; DATE_ADD(#{endTime},INTERVAL 1 day)
+		</if>
+		<if test="null != zxgdCont and '' != zxgdCont">
+			AND twa.FORM_CODE like '%${zxgdCont}%'
+		</if>
+		<if test="null != COUNTY and '-1' != COUNTY">
+			AND twa.COUNTY=#{COUNTY}
+		</if>
+		<if test="null != BRANCH_OFFICE and '-1' != BRANCH_OFFICE">
+			AND twa.BRANCH_OFFICE=#{BRANCH_OFFICE}
+		</if>
+ 		<if test="null != work_statis and 'active' == work_statis and '' != work_statis">
+ 			AND jhp.STATE_ = 'active'
+ 		</if>
+ 		<if test="null != work_statis and 'ended' == work_statis and '' != work_statis">
+ 			AND jhp.STATE_ = 'ended'
+ 		</if>
+ 		
+ 		ORDER BY twa.CREATED DESC
+	</select>
+	
+	<!-- 查询报表数据详情 -->
+	<select id="queryReportDataDetail" parameterType="java.util.HashMap" resultType="java.util.Map">
+		 SELECT DISTINCT jhp.DBID_, twa.FORM_CODE, twa.TITLE, dict1.DICT_TYPE, dict1.DICT_VALUE, dict1.DICT_NAME
+						, dict2.DICT_TYPE DICT_TYPE1, dict2.DICT_VALUE DICT_VALUE1, dict2.DICT_NAME DICT_NAME1
+						, minjht.USER_ALIAS
+						, if(jhp.STATE_='ended','已归档','流程中') state_
+						, DATE_FORMAT(jhp.START_, '%Y-%m-%d %H:%i:%s') start_, DATE_FORMAT(jhp.END_, '%Y-%m-%d %H:%i:%s') end_
+						, 0 cs
+						, minjht.END_ end_1, concat(TIMEDIFF(minjht.END_, jhp.START_),' ') timediff_first, concat(TIMEDIFF(jhp.END_, jhp.START_),' ') timediff_all
+						, twa.COUNTY, county.org_name county_name, twa.BRANCH_OFFICE, office.org_name office_name, twa.CHANNEL, channel.org_name channel_name
+						, twa.USER_PHONE, twa.LIQUIDATED_DAMAGES, twa.tag_ifsuccess,minjht.EXECUTION_ pid
+						, COUNT(1) faqiSum
+						, SUM(if(jhp.STATE_='active',1,0)) liuchengSum
+						, SUM(if(jhp.STATE_='ended',1,0)) guidangSum 
+		FROM jbpm4_hist_procinst jhp
+		LEFT JOIN (
+				SELECT DISTINCT pid, FORM_ID FROM t_task 
+				WHERE 1=1
+				<if test="null != startTime and '' != startTime">
+					AND t_task.CREATED >= #{startTime}
+				</if>
+				<if test="null != endTime and '' != endTime">	
+					AND t_task.CREATED &lt; DATE_ADD(#{endTime},INTERVAL 1 day)				
+				</if>
+		) ttask ON ttask.pid=jhp.ID_
+		LEFT JOIN t_work_gov_ent_agency twa ON ttask.FORM_ID=twa.id
+		LEFT JOIN sys_dict dict1 ON dict1.PARENT_ID='mydbgd' AND dict1.DICT_VALUE=twa.SERVICE_TYPE
+		LEFT JOIN sys_dict dict2 ON dict2.PARENT_ID=dict1.DICT_TYPE AND dict2.DICT_VALUE=twa.SERVICE_TYPE_DETAIL
+		LEFT JOIN(
+				SELECT jha.HPROCI_, jha.END_, jht.ASSIGNEE_, sys_user.USER_ALIAS,jht.EXECUTION_
+				FROM jbpm4_hist_actinst jha
+				LEFT JOIN jbpm4_hist_task jht ON jha.HTASK_=jht.DBID_
+				LEFT JOIN sys_user ON jht.ASSIGNEE_=sys_user.USER_NAME
+				WHERE jha.DBID_=(SELECT min(jha1.DBID_) FROM jbpm4_hist_actinst jha1 WHERE jha1.HPROCI_=jha.HPROCI_ AND jha1.ACTIVITY_NAME_ LIKE '%支撑%')
+				<if test="null != startTime and '' != startTime">
+					AND jha.START_ >= #{startTime}
+				</if>
+				<if test="null != endTime and '' != endTime">
+					AND jha.START_ &lt; DATE_ADD(#{endTime},INTERVAL 1 day)
+				</if>
+		) minjht ON minjht.HPROCI_=jhp.DBID_
+		LEFT JOIN sys_org county ON twa.COUNTY=county.id
+		LEFT JOIN sys_org office ON twa.BRANCH_OFFICE=office.id
+		LEFT JOIN sys_org channel ON twa.CHANNEL=channel.ID
+		WHERE 1=1
+		AND jhp.PROCDEFID_ LIKE '政企支撑工单%'
+		<if test="null != startTime and '' != startTime">
+			AND jhp.START_ >= #{startTime}
+		</if>
+		<if test="null != endTime and '' != endTime">
+			AND jhp.START_ &lt; DATE_ADD(#{endTime},INTERVAL 1 day)
+		</if>
+		<if test="null != zxgdCont and '' != zxgdCont">
+			AND twa.FORM_CODE like '%${zxgdCont}%'
+		</if>
+		<if test="null != COUNTY and '-1' != COUNTY">
+			AND twa.COUNTY=#{COUNTY}
+		</if>
+		<if test="null != BRANCH_OFFICE and '-1' != BRANCH_OFFICE">
+			AND twa.BRANCH_OFFICE=#{BRANCH_OFFICE}
+		</if>
+ 		<if test="null != work_statis and 'active' == work_statis and '' != work_statis">
+ 			AND jhp.STATE_ = 'active'
+ 		</if>
+ 		<if test="null != work_statis and 'ended' == work_statis and '' != work_statis">
+ 			AND jhp.STATE_ = 'ended'
+ 		</if>
+ 		
+ 		ORDER BY twa.CREATED DESC
+	</select>
+</mapper>

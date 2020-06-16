@@ -1,0 +1,217 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.SysMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.Sys">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_CODE" jdbcType="VARCHAR" property="sysCode" />
+		<result column="SYS_NAME" jdbcType="VARCHAR" property="sysName" />
+		<result column="SYS_TYPE" jdbcType="VARCHAR" property="sysType" />
+		<result column="SYS_BELONG" jdbcType="VARCHAR" property="sysBelong" />
+		<result column="SYS_VERSION" jdbcType="VARCHAR" property="sysVersion" />
+		<result column="SYS_RELEASE" jdbcType="VARCHAR" property="sysRelease" />
+		<result column="SYS_COPYRIGHTS" jdbcType="VARCHAR" property="sysCopyrights" />
+		<result column="SYS_SUPPORT" jdbcType="VARCHAR" property="sysSupport" />
+		<result column="SYS_URL" jdbcType="VARCHAR" property="sysUrl" />
+		<result column="SYS_PAGE" jdbcType="VARCHAR" property="sysPage" />
+		<result column="SYS_LOG" jdbcType="VARCHAR" property="sysLog" />
+		<result column="SORT_NO" jdbcType="INTEGER" property="sortNo" />
+		<result column="ORG_ID" jdbcType="VARCHAR" property="orgId" />
+		<result column="USER_ID" jdbcType="VARCHAR" property="userId" />
+		<result column="ROLE_ID" jdbcType="VARCHAR" property="roleId" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+	</resultMap>
+	<resultMap extends="BaseResultMap" id="ResultMapWithBLOBs"
+		type="cn.scihi.sys.pojo.Sys">
+		<result column="SYS_LOGO" jdbcType="BLOB" property="sysLogo" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, SYS_CODE, SYS_NAME, SYS_TYPE, SYS_BELONG, SYS_VERSION, SYS_RELEASE, SYS_COPYRIGHTS, SYS_SUPPORT, SYS_URL, SYS_PAGE, SYS_LOG, 
+		SORT_NO, ORG_ID, USER_ID, ROLE_ID, CREATER, CREATED, MODIFIER, MODIFIED, REMARK, ROW_DEFAULT, ROW_VALID, EXT1, EXT2,
+		EXT3, ROW_VERSION
+	</sql>
+	<sql id="Blob_Column_List">
+		SYS_LOGO
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="cn.scihi.sys.pojo.Sys"
+		resultMap="ResultMapWithBLOBs">
+		select
+		<include refid="Base_Column_List" />
+	 	,
+		<include refid="Blob_Column_List" />
+		from sys_system
+		where 1 = 1
+		<if test="null != id and '' != id">
+			and ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != extMap.sysIds">
+			and (ID in
+			<foreach item="item" collection="extMap.sysIds" open="(" separator="," close=")">
+				#{item}
+			</foreach>
+			or SYS_TYPE = '3')
+		</if>
+		<if test="null != sysCode and '' != sysCode">
+			and SYS_CODE = #{sysCode,jdbcType=VARCHAR}
+		</if>
+		<!-- <if test="null != sysName and '' != sysName">
+			and SYS_NAME like '%${sysName}%'
+		</if> -->
+		<if test="null != sysType and '' != sysType">
+			and SYS_TYPE = #{sysType,jdbcType=VARCHAR}
+		</if>
+		<if test="null != sysBelong and '' != sysBelong">
+			and SYS_BELONG = #{sysBelong,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowDefault and '' != rowDefault">
+			and ROW_DEFAULT = #{rowDefault,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (SYS_NAME like '%${keywords}%')
+		</if>
+		order by SORT_NO, CREATED desc
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from sys_msg_record where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_msg where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		
+		delete from sys_user_role where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_role_menu where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_menu_param where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		
+		delete from sys_ds where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_log where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_job where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_page where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_dict where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_file where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		
+		delete from sys_param where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_menu where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_role where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_user where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_org where SYS_ID = #{_parameter,jdbcType=VARCHAR};
+		delete from sys_system where ID = #{_parameter,jdbcType=VARCHAR} <![CDATA[ and ROW_DEFAULT <> '1' ]]>;
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.Sys">
+		insert into sys_system (
+		ID, 
+		SYS_CODE, 
+		SYS_NAME, 
+		SYS_TYPE, 
+		SYS_BELONG, 
+		SYS_VERSION, 
+		SYS_RELEASE,
+		SYS_LOGO,
+		SYS_COPYRIGHTS, 
+		SYS_SUPPORT, 
+		SYS_URL, 
+		SYS_PAGE, 
+		SYS_LOG,
+		SORT_NO,
+		ORG_ID, 
+		USER_ID, 
+		ROLE_ID, 
+		CREATER, 
+		CREATED, 
+		MODIFIER, 
+		MODIFIED, 
+		REMARK, 
+		ROW_DEFAULT, 
+		ROW_VALID, 
+		EXT1, 
+		EXT2,
+		EXT3, 
+		ROW_VERSION
+		)
+		values
+		(#{id,jdbcType=VARCHAR},
+		<choose>
+			<when test="null == sysCode or '' == sysCode">
+				#{id,jdbcType=VARCHAR},
+			</when>
+			<otherwise>
+				#{sysCode,jdbcType=VARCHAR},
+			</otherwise>
+		</choose>
+		#{sysName,jdbcType=VARCHAR},
+		#{sysType,jdbcType=VARCHAR},
+		#{sysBelong,jdbcType=VARCHAR},
+		#{sysVersion,jdbcType=VARCHAR},
+		#{sysRelease,jdbcType=VARCHAR},
+		#{sysLogo,jdbcType=BLOB},
+		#{sysCopyrights,jdbcType=VARCHAR},
+		#{sysSupport,jdbcType=VARCHAR},
+		#{sysUrl,jdbcType=VARCHAR},
+		#{sysPage,jdbcType=VARCHAR},
+		#{sysLog,jdbcType=VARCHAR},
+		#{sortNo,jdbcType=INTEGER},
+		#{orgId,jdbcType=VARCHAR},
+		#{userId,jdbcType=VARCHAR},
+		#{roleId,jdbcType=VARCHAR},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{remark,jdbcType=VARCHAR},
+		#{rowDefault,jdbcType=VARCHAR},
+		#{rowValid,jdbcType=VARCHAR},
+		#{ext1,jdbcType=VARCHAR},
+		#{ext2,jdbcType=VARCHAR},
+		#{ext3,jdbcType=VARCHAR},
+		#{rowVersion,jdbcType=DECIMAL}
+		)
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.sys.pojo.Sys">
+		update
+		sys_system
+		set
+		SYS_NAME = #{sysName,jdbcType=VARCHAR},
+		SYS_CODE = #{sysCode,jdbcType=VARCHAR},
+		SYS_BELONG = #{sysBelong,jdbcType=VARCHAR},
+		SYS_VERSION = #{sysVersion,jdbcType=VARCHAR},
+		SYS_RELEASE = #{sysRelease,jdbcType=VARCHAR},
+		<if test="null != sysLogo and '' != sysLogo">
+			SYS_LOGO = #{sysLogo,jdbcType=BLOB},
+		</if>
+		SYS_COPYRIGHTS = #{sysCopyrights,jdbcType=VARCHAR},
+		SYS_SUPPORT = #{sysSupport,jdbcType=VARCHAR},
+		SYS_URL = #{sysUrl,jdbcType=VARCHAR},
+		SYS_PAGE = #{sysPage,jdbcType=VARCHAR},
+		SYS_LOG = #{sysLog,jdbcType=VARCHAR},
+		SORT_NO = #{sortNo,jdbcType=INTEGER},
+		<if test="null != orgId and '' != orgId">
+			ORG_ID = #{orgId,jdbcType=VARCHAR},
+		</if>
+		<if test="null != userId and '' != userId">
+			USER_ID = #{userId,jdbcType=VARCHAR},
+		</if>
+		<if test="null != roleId and '' != roleId">
+			ROLE_ID = #{roleId,jdbcType=VARCHAR},
+		</if>
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		REMARK = #{remark,jdbcType=VARCHAR},
+		ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		EXT1 = #{ext1,jdbcType=VARCHAR},
+		EXT2 = #{ext2,jdbcType=VARCHAR},
+		EXT3 = #{ext3,jdbcType=VARCHAR},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

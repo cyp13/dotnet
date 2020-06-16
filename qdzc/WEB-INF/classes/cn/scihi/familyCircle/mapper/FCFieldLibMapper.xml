@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.IFCFieldLibMapper">
+<!-- 库字段增加 -->
+<select id="FCFieldLibList" resultType="java.util.Map">
+	select 
+		id
+		,SYS_ID
+		,name
+		,	CASE status
+			WHEN 0 THEN '启用'
+			WHEN 1 THEN '禁用'
+			ELSE '未知'
+			END AS status
+		,CREATER
+		,CREATED
+		,MODIFIER
+		,MODIFIED
+	from 
+		sys_family_circle_type
+	where SYS_ID=#{sysId}
+	<if test="queryStatus != null and queryStatus != '' and queryStatus != 'all'">
+		and status=#{queryStatus}
+	</if>
+	
+</select>
+
+<insert id="fieldAdd" parameterType="java.util.Map">
+	insert into sys_family_circle_type(
+		SYS_ID
+		,name
+		,CREATER
+		,CREATED
+	)values(
+		#{sysId}
+		,#{name}
+		,#{CREATER}
+		,#{CREATED}
+	)
+</insert>
+
+<update id="fieldUpdate" parameterType="java.util.Map">
+	update sys_family_circle_type
+	set name=#{name}
+		,MODIFIER=#{MODIFIER}
+		,MODIFIED=#{MODIFIED}
+	where id=#{id}
+</update>
+
+<select id="queryFieldById" resultType="java.util.Map">
+	select 
+		id
+		,SYS_ID
+		,name
+		,status
+		,CREATER
+		,CREATED
+		,MODIFIER
+		,MODIFIED
+	from sys_family_circle_type
+	where
+		id=#{id}
+</select>
+
+<update id="deleteFieldById">
+	update sys_family_circle_type
+	<if test="status=='禁用'">
+		set status = 0
+	</if>
+	<if test="status=='启用'">
+		set status = 1
+	</if>
+	where id=#{id}
+</update>
+
+<select id="queryFieldList" resultType="java.util.Map">
+	select id,SYS_ID,name,status,CREATER,CREATED,MODIFIER,MODIFIED from sys_family_circle_type
+	where SYS_ID=#{sysId} and status=0
+</select>
+</mapper>

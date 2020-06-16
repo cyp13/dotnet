@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.UserRoleMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.UserRole">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="USER_ID" jdbcType="VARCHAR" property="userId" />
+		<result column="ROLE_ID" jdbcType="VARCHAR" property="roleId" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+	</resultMap>
+	<select id="queryUserRole" parameterType="cn.scihi.sys.pojo.UserRole" resultType="java.util.LinkedHashMap">
+		select
+		T.SYS_ID as "sysId",
+		T.USER_ID as "userId",
+		T.ROLE_ID AS "roleId",
+		T.ROLE_ID AS "id",
+		T1.ROLE_CODE as "roleCode",
+		T1.ROLE_NAME as "roleName"
+		from sys_user_role T
+		left join sys_role T1 ON T.ROLE_ID = T1.ID
+		<!-- <if test="'authentication_' != sysId">
+			and T1.SYS_ID = T.SYS_ID
+		</if> -->
+		where 1=1 
+		and T.USER_ID = #{userId,jdbcType=VARCHAR}
+		and T1.ROW_VALID = '1'
+		<!-- <if test="'authentication_' != sysId">
+			and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		</if> -->
+	</select>
+	<delete id="deleteByUserId">
+		delete from
+		sys_user_role
+		where USER_ID = #{0,jdbcType=VARCHAR}
+		and SYS_ID = #{1,jdbcType=VARCHAR}
+	</delete>
+	<delete id="deleteByRoleId" parameterType="java.lang.String">
+		delete from
+		sys_user_role
+		where ROLE_ID = #{roleId,jdbcType=VARCHAR}
+	</delete>
+	<delete id="deleteUserRole">
+		delete from
+		sys_user_role
+		where USER_ID = #{0,jdbcType=VARCHAR}
+		and ROLE_ID = #{1,jdbcType=VARCHAR}
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.UserRole">
+		insert into sys_user_role (
+		ID,
+		SYS_ID,
+		USER_ID, 
+		ROLE_ID,
+		MODIFIER, 
+		MODIFIED,
+		ROW_VERSION
+		)
+		values
+		(#{id,jdbcType=VARCHAR}, 
+		#{sysId,jdbcType=VARCHAR},
+		#{userId,jdbcType=VARCHAR},
+		#{roleId,jdbcType=VARCHAR},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP}, 
+		#{rowVersion,jdbcType=DECIMAL}
+		)
+	</insert>
+</mapper>

@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.MenuMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.Menu">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="PARENT_ID" jdbcType="VARCHAR" property="parentId" />
+		<result column="MENU_CODE" jdbcType="VARCHAR" property="menuCode" />
+		<result column="MENU_NAME" jdbcType="VARCHAR" property="menuName" />
+		<result column="MENU_TYPE" jdbcType="VARCHAR" property="menuType" />
+		<result column="MENU_URL" jdbcType="VARCHAR" property="menuUrl" />
+		<result column="MENU_TARGET" jdbcType="VARCHAR" property="menuTarget" />
+		<result column="MENU_ICON" jdbcType="VARCHAR" property="menuIcon" />
+		<result column="SORT_NO" jdbcType="INTEGER" property="sortNo" />
+		<result column="EXT_ID" jdbcType="VARCHAR" property="extId" />
+		<result column="EXT_PATH" jdbcType="VARCHAR" property="extPath" />
+		<result column="EXTEND_FLAG" jdbcType="VARCHAR" property="extendFlag" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+
+		<result column="PARENT_NAME" jdbcType="VARCHAR" property="parentName" />
+		<result column="CHILDS" jdbcType="INTEGER" property="childs" />
+		<result column="CHECKED" jdbcType="INTEGER" property="checked" />
+	</resultMap>
+	<resultMap extends="BaseResultMap" id="ResultMapWithBLOBs"
+		type="cn.scihi.sys.pojo.Menu">
+		<result column="FILE_XML" jdbcType="BLOB" property="fileXml" />
+	</resultMap>
+	<select id="queryMenu" parameterType="cn.scihi.sys.pojo.Menu"
+		resultMap="ResultMapWithBLOBs">
+		select A.*
+		<if test="null != extMap.fileXml">
+			,B.FILE_XML as "FILE_XML"
+		</if>
+		from (
+		select
+		distinct
+		T.ID as "ID",
+		T.SYS_ID as "SYS_ID",
+		T.PARENT_ID as
+		"PARENT_ID",
+		T4.MENU_NAME as "PARENT_NAME",
+		T.MENU_CODE as "MENU_CODE",
+		T.MENU_NAME as "MENU_NAME",
+		T.MENU_TYPE as "MENU_TYPE",
+		T.MENU_URL as
+		"MENU_URL",
+		T.MENU_TARGET as "MENU_TARGET",
+		T.MENU_ICON as "MENU_ICON",
+		T.SORT_NO as "SORT_NO",
+		T.EXT_ID as "EXT_ID",
+		T.EXT_PATH as "EXT_PATH",
+		T.EXTEND_FLAG as "extendFlag",
+		T.CREATER as "CREATER",
+		T.CREATED as
+		"CREATED",
+		T.MODIFIER as "MODIFIER",
+		T.MODIFIED as "MODIFIED",
+		T.REMARK
+		as "REMARK",
+		T.ROW_DEFAULT as "ROW_DEFAULT",
+		T.ROW_VALID as "ROW_VALID",
+		T.EXT1 as "EXT1",
+		T.EXT2 as "EXT2",
+		T.EXT3 as "EXT3",
+		T.ROW_VERSION as
+		"ROW_VERSION",
+		count(T2.ID) as "CHILDS" ,
+		case when count(T3.ID) > 0
+		then 1 else 0 end as "CHECKED"
+		from sys_menu T
+		left join sys_menu T2 on
+		T.ID = T2.PARENT_ID and T2.SYS_ID = T.SYS_ID
+		<if test="null != extMap.menuTypes">
+			and T2.ROW_VALID = '1'
+			and T2.MENU_TYPE in
+			<foreach item="item" collection="extMap.menuTypes" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		left join sys_role_menu T3 on T.ID = T3.MENU_ID and T3.ROLE_ID =
+		#{extMap.roleId,jdbcType=VARCHAR} and T3.SYS_ID = T.SYS_ID
+		left join
+		sys_menu T4 on T.PARENT_ID = T4.ID and T4.SYS_ID = T.SYS_ID
+		where 1=1
+		and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+			<![CDATA[ and T.ROW_VALID <> '9' ]]>
+		<if test="null != id and '' != id">
+			and T.ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != parentId and '' != parentId">
+			and T.PARENT_ID = #{parentId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != menuCode and '' != menuCode">
+			and T.MENU_CODE = #{menuCode,jdbcType=VARCHAR}
+		</if>
+		<!-- <if test="null != menuName and '' != menuName"> and T.MENU_NAME LIKE 
+			'%${menuName}%' </if> -->
+		<if test="null != menuType and '' != menuType">
+			and T.MENU_TYPE = #{menuType,jdbcType=VARCHAR}
+		</if>
+		<if test="null != extMap.menuTypes">
+			and T.MENU_TYPE in
+			<foreach item="item" collection="extMap.menuTypes" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and T.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != extendFlag and '' != extendFlag">
+			and T.EXTEND_FLAG = #{extendFlag,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (T.MENU_CODE like '%${keywords}%'
+			or T.MENU_NAME like
+			'%${keywords}%'
+			or T.MENU_URL like '%${keywords}%')
+		</if>
+		group by
+		T.ID,T.SYS_ID,T.PARENT_ID,T4.MENU_NAME,T.MENU_CODE,T.MENU_NAME,T.MENU_TYPE,T.MENU_URL,T.MENU_TARGET,
+		T.MENU_ICON,T.SORT_NO,T.EXT_ID,T.EXT_PATH,T.EXTEND_FLAG,T.CREATER,T.CREATED,T.MODIFIER,T.MODIFIED,T.REMARK,T.ROW_DEFAULT,
+		T.ROW_VALID,T.EXT1,T.EXT2,T.EXT3,T.ROW_VERSION
+		) A
+		left join sys_menu B
+		on A.ID = B.ID and B.SYS_ID = A.SYS_ID
+		where 1=1
+		order by A.SORT_NO,
+		A.CREATED desc
+	</select>
+	<select id="queryMenuByRole" parameterType="HashMap" resultMap="ResultMapWithBLOBs">
+		select
+		distinct
+		A.SYS_ID as "SYS_ID",
+		A.MENU_ID as "ID",
+		B.PARENT_ID as
+		"PARENT_ID",
+		B.MENU_CODE as "MENU_CODE",
+		B.MENU_NAME as "MENU_NAME",
+		B.MENU_TYPE as "MENU_TYPE",
+		B.MENU_URL as "MENU_URL",
+		B.MENU_TARGET as
+		"MENU_TARGET",
+		B.MENU_ICON as "MENU_ICON",
+		B.SORT_NO as "SORT_NO",
+		B.CREATED as "CREATED",
+		count(D.ID) as "CHILDS"
+		from sys_role_menu A
+		left join sys_menu B on A.MENU_ID = B.ID and B.SYS_ID = A.SYS_ID
+		left
+		join sys_role_menu C on A.MENU_ID = C.PARENT_ID and A.ROLE_ID =
+		C.ROLE_ID and C.SYS_ID = A.SYS_ID
+		left join sys_menu D on C.MENU_ID =
+		D.ID and D.ROW_VALID = '1' and D.SYS_ID = A.SYS_ID
+		<if test="null != menuTypes">
+			and D.MENU_TYPE in
+			<foreach item="item" collection="menuTypes" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		where 1=1
+		and A.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<if test="null != menuTypes">
+			and B.MENU_TYPE in
+			<foreach item="item" collection="menuTypes" open="("
+				separator="," close=")">
+				#{item}
+			</foreach>
+		</if>
+		and B.ROW_VALID = '1'
+		and A.PARENT_ID = #{parentId,jdbcType=VARCHAR}
+		and A.ROLE_ID in
+		<foreach collection="authoritys" item="item" open="("
+			separator="," close=")">
+			#{item.authority}
+		</foreach>
+		group by
+		A.SYS_ID,A.MENU_ID,B.PARENT_ID,B.MENU_CODE,B.MENU_NAME,B.MENU_TYPE,B.MENU_URL,B.MENU_TARGET,B.MENU_ICON,B.SORT_NO,B.CREATED
+		order by B.SORT_NO, B.CREATED desc
+	</select>
+	<delete id="deleteByPrimaryKey">
+		delete from sys_role_menu where MENU_ID = #{0,jdbcType=VARCHAR} and
+		SYS_ID = #{1,jdbcType=VARCHAR};
+		delete from sys_menu_param where
+		MENU_ID = #{0,jdbcType=VARCHAR} and SYS_ID = #{1,jdbcType=VARCHAR};
+		delete from sys_page where MENU_ID = #{0,jdbcType=VARCHAR} and SYS_ID
+		= #{1,jdbcType=VARCHAR};
+
+		delete from sys_menu where ID =
+		#{0,jdbcType=VARCHAR} and SYS_ID =
+		#{1,jdbcType=VARCHAR} <![CDATA[ and ROW_DEFAULT <> '1' ]]>;
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.Menu">
+		insert into sys_menu (
+		ID,
+		SYS_ID,
+		PARENT_ID,
+		MENU_CODE,
+		MENU_NAME,
+		MENU_TYPE,
+		MENU_URL,
+		MENU_TARGET,
+		MENU_ICON,
+		SORT_NO,
+		EXT_ID,
+		EXT_PATH,
+		<if test="null != fileXml and '' != fileXml">
+			FILE_XML,
+		</if>
+		EXTEND_FLAG,
+		CREATER,
+		CREATED,
+		MODIFIER,
+		MODIFIED,
+		REMARK,
+		ROW_DEFAULT,
+		ROW_VALID,
+		EXT1,
+		EXT2,
+		EXT3,
+		ROW_VERSION
+		)
+		values
+		(#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{parentId,jdbcType=VARCHAR},
+		<choose>
+			<when test="null == menuCode or '' == menuCode">
+				#{id,jdbcType=VARCHAR},
+			</when>
+			<otherwise>
+				#{menuCode,jdbcType=VARCHAR},
+			</otherwise>
+		</choose>
+		#{menuName,jdbcType=VARCHAR},
+		#{menuType,jdbcType=VARCHAR},
+		#{menuUrl,jdbcType=VARCHAR},
+		#{menuTarget,jdbcType=VARCHAR},
+		#{menuIcon,jdbcType=VARCHAR},
+		#{sortNo,jdbcType=INTEGER},
+		#{extId,jdbcType=VARCHAR},
+		#{extPath,jdbcType=VARCHAR},
+		<if test="null != fileXml and '' != fileXml">
+			#{fileXml,jdbcType=BLOB},
+		</if>
+		#{extendFlag,jdbcType=VARCHAR},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{remark,jdbcType=VARCHAR},
+		#{rowDefault,jdbcType=VARCHAR},
+		#{rowValid,jdbcType=VARCHAR},
+		#{ext1,jdbcType=VARCHAR},
+		#{ext2,jdbcType=VARCHAR},
+		#{ext3,jdbcType=VARCHAR},
+		#{rowVersion,jdbcType=DECIMAL}
+		)
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.sys.pojo.Menu">
+		update sys_menu
+		set
+		PARENT_ID = #{parentId,jdbcType=VARCHAR},
+		MENU_CODE =
+		#{menuCode,jdbcType=VARCHAR},
+		MENU_NAME = #{menuName,jdbcType=VARCHAR},
+		MENU_TYPE = #{menuType,jdbcType=VARCHAR},
+		MENU_URL =
+		#{menuUrl,jdbcType=VARCHAR},
+		MENU_TARGET =
+		#{menuTarget,jdbcType=VARCHAR},
+		MENU_ICON =
+		#{menuIcon,jdbcType=VARCHAR},
+		SORT_NO = #{sortNo,jdbcType=INTEGER},
+		EXT_ID = #{extId,jdbcType=VARCHAR},
+		EXT_PATH =
+		#{extPath,jdbcType=VARCHAR},
+		<if test="null != fileXml and '' != fileXml">
+			FILE_XML = #{fileXml,jdbcType=BLOB},
+		</if>
+		EXTEND_FLAG = #{extendFlag,jdbcType=VARCHAR},
+		MODIFIER =
+		#{modifier,jdbcType=VARCHAR},
+		MODIFIED =
+		#{modified,jdbcType=TIMESTAMP},
+		REMARK = #{remark,jdbcType=VARCHAR},
+		ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		EXT1 =
+		#{ext1,jdbcType=VARCHAR},
+		EXT2 = #{ext2,jdbcType=VARCHAR},
+		EXT3 =
+		#{ext3,jdbcType=VARCHAR},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		where ID = #{id,jdbcType=VARCHAR}
+		and SYS_ID =
+		#{sysId,jdbcType=VARCHAR}
+	</update>
+	<select id="queryAppMenu" parameterType="HashMap" resultMap="ResultMapWithBLOBs">
+		SELECT
+		A.ID as "ID",
+		A.PARENT_ID as "PARENT_ID",
+		A.MENU_CODE as
+		"MENU_CODE",
+		A.MENU_NAME as "MENU_NAME",
+		A.MENU_TYPE as "MENU_TYPE",
+		A.MENU_URL as "MENU_URL",
+		A.MENU_TARGET as "MENU_TARGET",
+		A.MENU_ICON as
+		"MENU_ICON",
+		A.SORT_NO as "SORT_NO",
+		A.CREATED as "CREATED",
+		A.SYS_ID as
+		"SYS_ID",
+		A.REMARK as "REMARK",
+		A.EXT1 as "EXT1",
+		A.EXT2 as "EXT2",
+		A.EXT3 as "EXT3",
+		COUNT(C.ID) as "CHILDS"
+		FROM sys_role_menu srm
+		left join
+		sys_menu A on
+		a.id=srm.MENU_ID
+		left join sys_menu B on b.id=a.PARENT_ID
+		left join
+		sys_menu C on
+		C.PARENT_ID=A.ID
+		WHERE
+		A.ROW_VALID='1' AND
+		A.MENU_TYPE=
+		#{menuType,jdbcType=VARCHAR}
+		<if test="null != roleIds and '' != roleIds">
+			and srm.ROLE_ID in
+			<foreach collection="roleIds.split(',')" item="pId" index="index"
+				open="(" close=")" separator=",">
+				'${pId}'
+			</foreach>
+		</if>
+		and srm.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<choose>
+			<when test="null != parentId and '' != parentId">
+				AND SRM.PARENT_ID=#{parentId,jdbcType=VARCHAR}
+			</when>
+			<otherwise>
+				and b.MENU_NAME='App菜单'
+			</otherwise>
+		</choose>
+
+		group by a.ID
+		order by A.SORT_NO, B.CREATED desc
+
+	</select>
+</mapper>

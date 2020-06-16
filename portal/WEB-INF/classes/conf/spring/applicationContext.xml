@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xsi:schemaLocation="
+           http://www.springframework.org/schema/beans
+           http://www.springframework.org/schema/beans/spring-beans-3.2.xsd
+           http://www.springframework.org/schema/context
+           http://www.springframework.org/schema/context/spring-context-3.2.xsd
+           http://www.springframework.org/schema/tx
+           http://www.springframework.org/schema/tx/spring-tx-3.2.xsd
+           http://www.springframework.org/schema/aop
+           http://www.springframework.org/schema/aop/spring-aop-3.2.xsd">
+
+	<bean id="environmentVariablesConfiguration"
+          class="org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig">
+        <property name="algorithm" value="PBEWithMD5AndDES"/>
+        <property name="passwordEnvName" value="APP_ENCRYPTION_PASSWORD"/>
+        <!-- 需要与生成加密参数时使用的盐保持一致  -->
+        <property name="password" value="portal"/>
+    </bean>
+
+    <bean id="configurationEncryptor"
+          class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+        <property name="config" ref="environmentVariablesConfiguration"/>
+    </bean>
+
+    <bean id="propertyConfigurer"
+          class="org.jasypt.spring31.properties.EncryptablePropertyPlaceholderConfigurer">
+        <constructor-arg ref="configurationEncryptor"/>
+        <property name="locations">
+            <list>
+                <value>classpath:sys.properties</value>
+            </list>
+        </property>
+        <property name="ignoreUnresolvablePlaceholders" value="true" />
+    </bean>
+
+	<context:property-placeholder location="classpath:sys.properties"
+		file-encoding="UTF-8" ignore-unresolvable="true" />
+
+	<context:component-scan base-package="cn.scihi">
+		<context:exclude-filter type="annotation"
+			expression="org.springframework.stereotype.Controller" />
+	</context:component-scan>
+
+	<aop:aspectj-autoproxy proxy-target-class="false" />
+
+	<bean id="dataSourceOne" class="org.apache.commons.dbcp.BasicDataSource"
+		destroy-method="close">
+		<property name="driverClassName" value="${jdbc.driver}" />
+		<property name="url" value="${jdbc.url}" />
+		<property name="username" value="${jdbc.username}" />
+		<property name="password" value="${jdbc.password}" />
+		<!--申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能--> 
+		<property name="testOnBorrow" value="true" />
+		<!-- 配置初始化大小、最小、最大 -->
+		<property name="initialSize" value="1" />
+		<property name="minIdle" value="1" />
+		<property name="maxActive" value="500" />            
+		<!-- 配置获取连接等待超时的时间 -->
+		<property name="maxWait" value="60000" />          
+		<!-- 配置间隔多久才进行一次检测，检测需要关闭的空闲连接，单位是毫秒 -->
+		<property name="timeBetweenEvictionRunsMillis" value="60000" />          
+		<!-- 配置一个连接在池中最小生存的时间，单位是毫秒 -->
+		<property name="minEvictableIdleTimeMillis" value="300000" />
+		 <!--是否要进行检测-->
+		<property name="testWhileIdle" value="true" /> 
+		<!--是否在数据库连接请求量大的时候，如总数50，当前已请求了49个，所剩不多了，检测那些执行时间久的连接--> 
+        <property name="removeAbandoned" value="true"/> 
+		<property name="validationQuery" value="${jdbc.validationQuery}" />
+	</bean>
+
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSourceOne" />
+		<property name="configLocation" value="classpath:conf/mybatis/mybatis-config.xml" />
+	</bean>
+
+	<bean class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+		<property name="basePackage" value="cn.scihi.**.mapper" />
+		<property name="sqlSessionFactoryBeanName" value="sqlSessionFactory" />
+	</bean>
+
+	<bean id="jdbcTemplate" class="org.springframework.jdbc.core.JdbcTemplate">
+		<property name="dataSource" ref="dataSourceOne" />
+	</bean>
+
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg index="0" ref="sqlSessionFactory" />
+	</bean>
+
+	<bean id="sessionFactory"
+		class="org.springframework.orm.hibernate3.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSourceOne" />
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.dialect">${jdbc.dialect}</prop>
+			</props>
+		</property>
+		<property name="configLocations" value="classpath:conf/**/*hibernate.cfg.xml"></property>
+	</bean>
+
+	<bean id="hibernateTransactionManager"
+		class="org.springframework.orm.hibernate3.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory" />
+	</bean>
+
+	<tx:annotation-driven transaction-manager="hibernateTransactionManager"
+		proxy-target-class="true" />
+
+	<tx:advice id="transactionAdvice" transaction-manager="hibernateTransactionManager">
+		<tx:attributes>
+			<tx:method name="start*" propagation="REQUIRED"
+				rollback-for="Exception" />
+			<tx:method name="complete*" propagation="REQUIRED"
+				rollback-for="Exception" />
+			<tx:method name="exec*" propagation="REQUIRED"
+				rollback-for="Exception" />
+
+			<tx:method name="insert*" propagation="REQUIRED"
+				rollback-for="Exception" />
+			<tx:method name="delete*" propagation="REQUIRED"
+				rollback-for="Exception" />
+			<tx:method name="update*" propagation="REQUIRED"
+				rollback-for="Exception" />
+			<tx:method name="query*" propagation="NOT_SUPPORTED"
+				read-only="true" />
+		</tx:attributes>
+	</tx:advice>
+
+	<aop:config>
+		<aop:pointcut id="transactionPointcut" expression="execution(* cn.scihi..*.ucc.*.*(..))" />
+		<aop:advisor pointcut-ref="transactionPointcut"
+			advice-ref="transactionAdvice" />
+	</aop:config>
+
+	<bean id="springFactory" class="cn.scihi.commons.util.SpringFactory" />
+
+	<bean id="multipartResolver"
+		class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<property name="defaultEncoding" value="UTF-8" />
+		<property name="maxUploadSize" value="52428800" /><!-- 上传文件大小限制为50M*1024*1024 -->
+		<property name="resolveLazily" value="true" />
+	</bean>
+</beans>

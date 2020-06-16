@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zxj.rule.dao.RuleGroupMapper">
+	<select id="queryRuleGroup" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select distinct
+		t.id as "id",
+		t.group_code as "group_code",
+		t.group_name as "group_name",
+		t.org_id as "org_id",
+		t.org_name as "org_name",
+		t.row_valid as "row_valid",
+		t.creator as "creator",
+		t.modifier as "modifier",
+		t.created as "created",
+		t.modified as "modified"
+		from rule_group t 
+		where 1=1
+		<if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+		<if test="null != org_id and '' != org_id">
+			and t.org_id = #{org_id}
+		</if>
+		<if test="null != group_code and '' != group_code">
+			and t.group_code = #{group_code}
+		</if>
+		<if test="null != row_valid and '' != row_valid">
+			and t.row_valid = #{row_valid}
+		</if>
+		order by created asc
+	</select>
+
+	<insert id="insertRuleGroup" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="group_code">
+			select
+			uuid()
+		</selectKey>
+		insert into
+		rule_group(org_id,org_name,group_name,group_code,row_valid,creator,created,modifier,modified)
+		values(#{org_id},#{org_name},#{group_name},#{group_code},#{row_valid},#{userName},now(),#{userName},now())
+	</insert>
+
+	<update id="updateRuleGroup" parameterType="java.util.HashMap">
+		update 	rule_group
+		<set>
+			<if test="null != group_name and '' != group_name">
+				group_name=#{group_name},
+			</if>
+			<if test="null != row_valid and '' != row_valid">
+				row_valid=#{row_valid},
+			</if>
+			modified = now(),
+			modifier=#{userName}
+		</set>
+		
+		where id=#{id}
+	</update>
+	
+
+	<delete id="deleteRuleGroup" parameterType="java.lang.String">
+		delete from
+		rule_group
+		where
+		id=#{id}
+	</delete>
+</mapper>

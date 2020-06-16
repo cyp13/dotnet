@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.RolePowerMapper">
+
+<select id="queryRolePower" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+	select
+	sr.ID as roleId
+	,sr.ROLE_NAME as roleName
+	,sm.MENU_NAME as menuName
+	,sm.MENU_URL as menuUrl
+	from sys_role sr
+	left join sys_user_role sur on sur.ROLE_ID = sr.ID
+	left join sys_user su on su.ID = sur.USER_ID
+	left join sys_role_menu srm on srm.ROLE_ID = sr.ID
+	left join sys_menu sm on sm.ID = srm.MENU_ID
+	where sr.SYS_ID = '026b17ad-a099-45c1-beb5-316d300c7f23'
+	<if test="null != userName and '' != userName">
+		and su.USER_NAME = #{userName}
+	</if>
+</select>
+
+<select id="queryAllPower" resultType="java.util.HashMap">
+	select
+	sm.ID as id
+	,sm.MENU_URL as menuUrl
+	from sys_menu sm
+</select>
+</mapper>

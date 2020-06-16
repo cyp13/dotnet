@@ -1,0 +1,339 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.SpecialMapper">
+	<select id="querySpecial" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select
+		t.id as "id",
+		tt.pid as "pid", 
+		t.title as "title",
+		t.form_code as "form_code", 
+		t.service_type as "service_type",
+		t.service_type_detail as "service_type_detail",
+		t.service_name as "service_name",
+		t.county as
+		"county",
+		o.org_name as "county_name",
+		t.branch_office as
+		"branch_office",
+		o2.org_name as "branch_office_name",
+		t.channel as
+		"channel",
+		o3.org_name as "channel_name",
+		t.channel_phone as
+		"channel_phone",
+		
+		
+		t.group_name as "group_name",
+		t.install_address as "install_address",
+		t.install_name as "install_name",
+		t.install_phone as "install_phone",
+		t.group_mainname as "group_mainname",
+		t.mainphone as "mainphone",
+		t.discount_rate as "discount_rate",
+		t.group_code  as "group_code",
+		t.specialnumber as "specialnumber",
+		t.work_type as "work_type",
+		t.work_statis as "work_statis",
+		 
+		
+		
+		
+		t.creater as "creater",
+		t.created as "created", 
+		t.modifier as "modifier",
+		t.modified as "modified",
+		t.remark as "remark",
+		t.status as "status",
+		t.ext1 as "ext1",
+		t.ext2 as "ext2",
+		t.ext3 as "ext3",
+		t.row_version as "row_version",
+		jhp.STATE_
+		from t_work_special t
+		left join sys_org o
+		on t.county = o.org_code
+		left join sys_org o2
+		on
+		t.branch_office = o2.org_code
+		left join sys_org o3
+		on t.channel =
+		o3.org_code
+		left join t_task tt
+		on t.id = tt.form_id
+		left join jbpm4_hist_procinst jhp on jhp.ID_ = tt.PID
+		where 1=1
+		<if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+		<if test="null != pid and '' != pid">
+			and tt.pid = #{pid}
+		</if>
+		<if test="null != service_type and '' != service_type">
+			and t.service_type = #{service_type}
+		</if>
+		<if test="null != county and '' != county">
+			and t.county = #{county}
+		</if>
+		<if test="null != branch_office and '' != branch_office">
+			and t.branch_office = #{branch_office}
+		</if>
+		<if test="null != channel and '' != channel">
+			and t.channel = #{channel}
+		</if>
+		<if test="null != channel_phone and '' != channel_phone">
+			and t.channel_phone like  concat('%',#{channel_phone},'%')
+		</if>
+		<if test="null != user_phone and '' != user_phone">
+			and t.user_phone like  concat('%',#{user_phone},'%')
+		</if>
+		<choose>
+			<when test="null != orderStr and '' != orderStr">
+				${orderStr}
+			</when>
+			<otherwise>
+				order by t.CREATED desc
+			</otherwise>
+		</choose>
+	</select>
+
+	<insert id="insertSpecial" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select
+			uuid()
+		</selectKey>
+		
+		insert into
+		t_work_special
+		(
+		id,title,form_code,
+		county,branch_office,channel,channel_phone,
+		work_type,group_name,install_address,install_name,install_phone,
+		<if test="null != discount_rate and '' != discount_rate">
+			discount_rate,
+		</if>
+		<if test="null != specialnumber and '' != specialnumber">
+			specialnumber,
+		</if>
+		<if test="null != group_mainname and '' != group_mainname">
+			group_mainname,
+		</if>
+		<if test="null != mainphone and '' != mainphone">
+			mainphone,
+		</if> 
+		creater,created,row_version,`status`,form_type,enterprise_flag,remark
+		)
+		values
+		(
+		
+		#{id},#{title},#{form_code},
+		#{county},#{branch_office},#{channel},#{channel_phone},
+		#{work_type},#{group_name},#{install_address},#{install_name},#{install_phone},
+		
+		<if test="null != discount_rate and '' != discount_rate">
+			#{discount_rate},
+		</if>
+		<if test="null != specialnumber and '' != specialnumber">
+			#{specialnumber},
+		</if>
+		<if test="null != group_mainname and '' != group_mainname">
+			#{group_mainname},
+		</if>
+		<if test="null != mainphone and '' != mainphone">
+			#{mainphone},
+		</if> 
+		#{userName},now(),#{row_version},#{status},#{form_type},#{enterprise_flag},#{remark}
+		
+		)
+	</insert>
+
+	<update id="updateSpecial" parameterType="java.util.HashMap">
+		update t_work_special set
+		 <if test="null != discount_rate and '' != discount_rate">
+			discount_rate=#{discount_rate},
+		</if>
+		<if test="null != specialnumber and '' != specialnumber">
+			specialnumber=#{specialnumber},
+		</if>
+		<if test="null != group_mainname and '' != group_mainname">
+			group_mainname=#{group_mainname},
+		</if>
+		<if test="null != mainphone and '' != mainphone">
+			mainphone=#{mainphone},
+		</if> 
+		<if test="null != title and '' != title">
+			title=#{title},
+		</if> 
+		
+		<if test="null != service_type and '' != service_type">
+			service_type=#{service_type},
+		</if> 
+		<if test="null != service_type_name and '' != service_type_name">
+			service_type_name=#{service_type_name},
+		</if>
+		<if test="null != service_type_detail_name and '' != service_type_detail_name">
+			service_type_detail_name=#{service_type_detail_name},
+		</if>
+		<if test="null != service_type_detail and '' != service_type_detail">
+			service_type_detail=#{service_type_detail},
+		</if>
+		<if test="null != work_statis and '' != work_statis">
+			work_statis=#{work_statis},
+		</if>
+		<if test="null != group_name and '' != group_name">
+			group_name=#{group_name},
+		</if>
+		<if test="null != install_address and '' != install_address">
+			install_address=#{install_address},
+		</if>
+		<if test="null != install_name and '' != install_name">
+			install_name=#{install_name},
+		</if>
+		<if test="null != install_phone and '' != install_phone">
+			install_phone=#{install_phone},
+		</if>
+
+ 
+
+		<if test="null != group_code and '' != group_code">
+			group_code=#{group_code},
+		</if>
+
+		<if test="null != work_type and '' != work_type">
+			work_type=#{work_type},
+		</if>
+		<if test="null != service_type and '' != service_type">
+			service_type=#{service_type},
+		</if>
+		<if test="null != service_name and '' != service_name">
+			service_name=#{service_name},
+		</if>
+		<if test="null != description and '' != description">
+			description=#{description},
+		</if>
+		<if test="null != remark and '' != remark">
+			remark=#{remark},
+		</if>
+		<if test="null != status and '' != status">
+			status=#{status},
+		</if>
+		<if test="null != ext1 and '' != ext1">
+			ext1=#{ext1},
+		</if>
+		<if test="null != ext2 and '' != ext2">
+			ext2=#{ext2},
+		</if>
+		<if test="null != ext3 and '' != ext3">
+			ext3=#{ext3},
+		</if>
+		row_version=#{row_version},
+		modifier=#{userName},
+		modified=now()
+		where id=#{id}
+	</update>
+
+	<delete id="deleteSpecial" parameterType="java.lang.String">
+		delete from
+		t_work_special
+		where
+		id=#{id}
+	</delete>
+	 
+	<select id="querySpecialAll" parameterType="java.util.HashMap"
+	resultType="java.util.Map">
+ 
+	SELECT tws.*,
+	(case when tws.work_statis = 0 then '待处理'  
+when (tws.work_statis=1 or tws.work_statis=2) then '处理中'
+when (tws.work_statis=3 or tws.work_statis=6) then '已处理'
+when (tws.work_statis=4 or tws.work_statis=2) then '归档(成功)'
+ else '归档(失败)' end  ) work_statis_name,
+(case when tws.work_type = 1 then '开户' when tws.work_type=2 then '变更' when tws.work_type=3 then '销户' when tws.work_type=4 then '暂停' when tws.work_type=5 then '暂停恢复' when tws.work_type=6 then '预销' else '-' end  ) work_type_name,
+	so.ORG_NAME county_name,
+	so1.ORG_NAME branch_office_name,
+	tt.pid pid,  
+	tt.TASK_ID taskid 
+	from (select * from t_work_special
+UNION ALL
+select * from t_work_commerce ) tws 
+	LEFT JOIN sys_org so ON tws.COUNTY=so.ID 
+	LEFT JOIN sys_org so1 ON so1.id=tws.BRANCH_OFFICE 
+	LEFT JOIN t_task tt ON tws.id=tt.FORM_ID
+	where 1=1 
+	<if test="null != zxgdCont and '' != zxgdCont">
+		and ( tws.FORM_CODE like '%${zxgdCont}%' OR tws.group_name like '%${zxgdCont}%')  
+	</if>
+	<if test="null != startTime and '' != startTime">
+		AND tws.CREATED >=DATE_FORMAT(#{startTime}, '%Y-%m-%d 00:00:00')
+	</if>
+	<if test="null != endTime and '' != endTime">
+		AND  tws.CREATED &lt;= DATE_FORMAT(DATE_ADD(#{endTime},INTERVAL 1 DAY),'%Y-%m-%d 00:00:00')
+	</if>
+	<if test="null != COUNTY and '-1' != COUNTY">
+		AND tws.COUNTY=#{COUNTY}
+	</if>
+	<if test="null != BRANCH_OFFICE and '-1' != BRANCH_OFFICE">
+		AND tws.BRANCH_OFFICE=#{BRANCH_OFFICE}
+	</if>
+	<if test="null != work_type and '-1' != work_type">
+	 	AND tws.work_type=#{work_type}
+	</if>
+	<if test="null != work_statis and '-1' != work_statis">
+		AND tws.work_statis in (${work_statis}
+			<if test="null != work_statis2 and '-1' != work_statis2">
+			,${work_statis2}  
+			</if>
+		)
+	</if>
+	 ORDER BY tws.CREATED DESC
+	</select>
+	
+	
+	<select id="queryOrgTableAll" parameterType="java.util.HashMap"
+	resultType="java.util.Map">
+ 			select ID,ORG_NAME  from sys_org where ORG_TYPE=#{ORG_TYPE}  AND ext1='MY'
+	 
+	</select>
+	<select id="querySpecialCount" parameterType="java.util.HashMap"
+	resultType="java.util.Map">
+ 		 
+	 
+	 SELECT COUNT(*) faqiSum,
+	 	SUM(if(tws.work_statis=1 or tws.work_statis=2,1,0)) weichuliSun ,
+		SUM(if(tws.work_statis=3 or tws.work_statis=6,1,0)) chuliSum,
+		SUM(if(tws.work_statis=4 or tws.work_statis=5,1,0)) guidangSum
+		
+		FROM t_work_special tws
+		
+	 where 1=1 
+	<if test="null != zxgdCont and '' != zxgdCont">
+		and ( tws.FORM_CODE like '%${zxgdCont}%' OR tws.group_name like '%${zxgdCont}%')  
+	</if>
+	<if test="null != startTime and '' != startTime">
+		AND tws.CREATED >=DATE_FORMAT(#{startTime}, '%Y-%m-%d 00:00:00')
+	</if>
+	<if test="null != endTime and '' != endTime">
+		AND  tws.CREATED &lt;= DATE_FORMAT(DATE_ADD(#{endTime},INTERVAL 1 DAY),'%Y-%m-%d 00:00:00')
+	</if>
+	<if test="null != COUNTY and '-1' != COUNTY">
+		AND tws.COUNTY=#{COUNTY}
+	</if>
+	<if test="null != BRANCH_OFFICE and '-1' != BRANCH_OFFICE">
+		AND tws.BRANCH_OFFICE=#{BRANCH_OFFICE}
+	</if>
+	<if test="null != work_type and '-1' != work_type">
+	 	AND tws.work_type=#{work_type}
+	</if>
+	<if test="null != work_statis and '-1' != work_statis">
+		AND tws.work_statis in (${work_statis}
+			<if test="null != work_statis2 and '-1' != work_statis2">
+			,${work_statis2}  
+			</if>
+		)
+	</if>
+	 ORDER BY tws.CREATED  
+	</select>
+	
+	 
+</mapper>

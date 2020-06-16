@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.sys.mapper.AdoptMapper">
+	<select id="queryAdopt" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select
+		t.id as "id",
+		t.user_name as "user_name",
+		u.user_alias as "user_alias",
+		t.start_time as "start_time",
+		t.end_time as "end_time",
+		t.remark as "remark",
+		t.status as "status",
+		t.creater as "creater",
+		t.created as "created",
+		t.modifier as "modifier",
+		t.modified as "modified"
+		from t_sys_work_adopt t 
+		left join sys_user u
+		on t.user_name = u.user_name
+		where 1=1
+		
+		 <if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+		<if test="null != userName and '' != userName">
+			and t.user_name = #{userName}
+		</if>
+		<if test="null != start_time and '' != start_time">
+			and t.start_time = #{start_time}
+		</if>
+		<if test="null != end_time and '' != end_time">
+			and t.end_time = #{end_time}
+		</if>
+		<if test="null != remark and '' != remark">
+			and t.remark = #{remark}
+		</if>  
+		<choose>
+			<when test="null != orderStr and '' != orderStr">
+				${orderStr}
+			</when>
+			<otherwise>
+				order by CREATED desc
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="queryIfAdopt" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+		select count(1) from t_sys_work_adopt t
+		where 1=1
+		and t.status='1'
+		and now() between t.start_time and t.end_time
+		and user_name = #{userName}
+	</select>
+	
+	<select id="queryIfConflict" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+		select count(1) from t_sys_work_adopt t
+		where 1=1
+		and status='1'
+		and t.end_time >= #{start_time}
+		and #{end_time} >= t.start_time
+		and user_name = #{userName}
+	</select>
+
+	<insert id="insertAdopt" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select
+			uuid()
+		</selectKey>
+		insert into
+		t_sys_work_adopt(id,user_name,start_time,end_time,remark,status,creater,created,modifier,modified)
+		
+		values(#{id},#{userName},#{start_time},#{end_time},#{remark},#{status},#{userName},now(),#{userName},now())
+	</insert>
+	
+	
+	<update id="updateAdopt" parameterType="java.util.HashMap">
+		update t_sys_work_adopt set
+		<if test="null != user_name and '' != user_name">
+			user_name=#{user_name},
+		</if>
+		<if test="null != start_time and '' != start_time">
+			start_time=#{start_time},
+		</if>
+		<if test="null != end_time and '' != end_time">
+			end_time=#{end_time},
+		</if>
+		<if test="null != remark and '' != remark">
+			remark=#{remark},
+		</if>
+		<if test="null != status and '' != status">
+			status=#{status},
+		</if>
+		modifier=#{userName},
+		modified=now()
+		where id=#{id}
+		
+	</update>
+	
+	
+
+	<delete id="deleteAdopt" parameterType="java.lang.String">
+		delete from
+		t_sys_work_adopt
+		where
+		id=#{id}
+	</delete>
+</mapper>

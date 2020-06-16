@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zxj.rule.dao.RuleMapper">
+
+	<select id="queryRuleList" parameterType="java.util.Map" resultType="java.util.HashMap">
+		select
+			id,
+			row_create_time,
+			row_update_time,
+			code,
+			name,
+			org_id,
+			creater,
+			created,
+			row_version,
+			row_valid,
+			assess_cycle,
+			if_loop,
+			task_start_time,
+			if_check,
+			if_sample,
+			dataurl,
+			rule_group,
+			pass_type,
+			pass_type_value,
+			pass_score,
+			convart_scale,
+			use_range,
+			audit_unit,
+			circle_days,
+			last_run_time,
+			use_for_all,
+			issue_type,
+			remark
+		from rule_defined
+		<where>
+			row_valid != -1
+			<if test="orgId != null and orgId != ''">
+				and org_id = #{orgId}
+			</if>
+		</where>
+		order by row_valid desc, created desc
+	</select>
+
+	<select id="queryRuleById" parameterType="java.lang.String" resultType="java.util.HashMap">
+		select
+			id,
+			row_create_time,
+			row_update_time,
+			code,
+			name,
+			org_id,
+			creater,
+			created,
+			row_version,
+			row_valid,
+			assess_cycle,
+			if_loop,
+			task_start_time,
+			if_check,
+			if_sample,
+			dataurl,
+			rule_group,
+			pass_type,
+			pass_type_value,
+			pass_score,
+			convart_scale,
+			use_range,
+			audit_unit,
+			circle_days,
+			last_run_time,
+			use_for_all,
+			issue_type,
+			remark
+		from rule_defined
+		<where>
+			<if test="id != null and id != ''">
+				id = #{id}
+			</if>
+		</where>
+	</select>
+
+	<select id="queryRuleItemList" parameterType="java.lang.String" resultType="java.util.HashMap">
+		select
+			id,
+			row_create_time,
+			row_update_time,
+			calculate_value,
+			min_value,
+			max_value,
+			calculate_type,
+			if_first,
+			integral,
+			rule_defined_id 
+		from rule_item
+		<where>
+			<if test="id != null and id != ''">
+				rule_defined_id = #{id}
+			</if>
+		</where>
+	</select>
+
+	<select id="queryItemsByRuleCode" parameterType="java.lang.String" resultType="java.util.HashMap">
+		select
+		    r.audit_unit,
+		    r.pass_score,
+			t.id,
+			t.row_create_time,
+			t.row_update_time,
+			t.calculate_value,
+			t.min_value,
+			t.max_value,
+			t.calculate_type,
+			t.if_first,
+			t.rule_defined_id,
+			t.integral 
+		from rule_item t
+		inner join rule_defined r on r.id = t.rule_defined_id and r.row_valid = 1
+		<where>
+			<if test="code != null and code != ''">
+				and r.code = #{code}
+			</if>
+		</where>
+	</select>
+	
+	<!-- 禁用规则的所有版本 -->
+	<update id="disableAllRule" parameterType="java.util.Map">
+		update rule_defined set row_valid = 0 where row_valid = 1 and code = #{code};
+	</update>
+	
+	<update id="updateRuleState" parameterType="java.util.Map">
+		update rule_defined set row_valid = #{rowValid} where id = #{id}
+	</update>
+
+	<select id="queryTest" parameterType="java.util.Map" resultType="java.util.HashMap">
+	SELECT
+		t.form_code,
+		t.boss_code,
+		t.oper_code,
+		t.oper_time
+	FROM
+		t_work_common t
+	WHERE
+		t.form_code = #{formCode}
+	</select>
+	
+<select id="queryCalculatable" parameterType="java.util.Map" resultType="com.zxj.rule.model.CalTask">
+	select id id, row_version version, code ruleCode, org_id orgId, concat(assess_cycle+1,'') timeAreaType, task_start_time startDate
+	, name ruleName, rule_group ruleGroup, issue_type downPattern, last_run_time lastRunTime, use_range useRange, remark remark
+	from rule_defined
+	where
+	<choose>
+		<when test="tixi!=null and tixi!=''">
+		rule_group=#{tixi}
+		</when>
+		<otherwise>
+		row_valid=1 and task_start_time&lt;now()
+		</otherwise>
+	</choose>
+	<if test="code!=null and code!=''">
+		and code=#{code}
+	</if>
+	<if test="orgId!=null and orgId!=''">
+	and (
+		org_id=#{orgId}
+		<if test="orgContext!=null and orgContext!=''">
+		or (org_id in (${orgContext}) and use_for_all=1)
+		</if>
+	)
+	</if>
+</select>
+
+<select id="queryCalculatorByCode" parameterType="java.util.Map" resultType="java.util.Map">
+select * from rule_defined where
+<if test="null!=ruleId and ''!=ruleId">
+id=#{ruleId}
+</if>
+<if test="null!=ruleCode and ''!=ruleCode">
+code=#{ruleCode} and row_valid=1;
+</if>
+</select>
+
+<select id="queryCalculatorItemByDefId" parameterType="java.util.Map" resultType="java.util.Map">
+select * from rule_item where rule_defined_id=#{defId} and if_first=#{ifFirst} order by calculate_value, min_value;
+</select>
+
+<update id="updateCalculatorByCode">
+update rule_defined set last_run_time=#{endDate} where code=#{ruleCode} and row_valid=1;
+</update>
+
+</mapper>

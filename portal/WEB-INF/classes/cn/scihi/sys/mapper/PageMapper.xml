@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.PageMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.Page">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="PAGE_TYPE" jdbcType="VARCHAR" property="pageType" />
+		<result column="EXT_ID" jdbcType="VARCHAR" property="extId" />
+		<result column="MENU_ID" jdbcType="VARCHAR" property="menuId" />
+		<result column="ROW_ICON" jdbcType="VARCHAR" property="rowIcon" />
+		<result column="ROW_TITLE" jdbcType="VARCHAR" property="rowTitle" />
+		<result column="ROW_WIDTH" jdbcType="VARCHAR" property="rowWidth" />
+		<result column="ROW_HEIGHT" jdbcType="VARCHAR" property="rowHeight" />
+		<result column="SORT_NO" jdbcType="INTEGER" property="sortNo" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+		
+		<result column="ROLE_NAME" jdbcType="VARCHAR" property="roleName" />
+		<result column="MENU_NAME" jdbcType="VARCHAR" property="menuName" />
+		<result column="MENU_URL" jdbcType="VARCHAR" property="menuUrl" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		T.ID, T.SYS_ID, T.PAGE_TYPE, T.EXT_ID, T.MENU_ID, T.ROW_ICON ,T.ROW_TITLE, T.ROW_WIDTH, T.ROW_HEIGHT, T.SORT_NO, 
+		T.CREATER, T.CREATED, T.MODIFIER, T.MODIFIED, T.REMARK, T.ROW_DEFAULT, T.ROW_VALID, T.EXT1, T.EXT2, T.EXT3, 
+		T.ROW_VERSION, T1.ROLE_NAME, T2.MENU_NAME, T2.MENU_URL 
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="cn.scihi.sys.pojo.Page"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_page T
+		left join sys_role T1 on T.EXT_ID = T1.ID and T1.SYS_ID = T.SYS_ID
+		left join sys_menu T2 on T.MENU_ID = T2.ID and T2.SYS_ID = T.SYS_ID
+		where 1 = 1
+		and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<![CDATA[ and T.ROW_VALID <> '9' ]]>
+		<if test="null != id and '' != id">
+			and T.ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != pageType and '' != pageType">
+			and T.PAGE_TYPE = #{pageType,jdbcType=VARCHAR}
+		</if>
+		<if test="null != extId and '' != extId">
+			and T.EXT_ID = #{extId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != extMap.authoritys">
+			and T.EXT_ID in 
+			<foreach collection="extMap.authoritys" item="item" open="(" separator="," close=")">
+				#{item.authority}
+			</foreach>
+			and T2.ROW_VALID = '1'
+		</if>
+		<if test="null != menuId and '' != menuId">
+			and T.MENU_ID = #{menuId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and T.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (T1.ROLE_NAME like '%${keywords}%'
+			or T2.MENU_NAME like '%${keywords}%')
+		</if>
+		order by T.SORT_NO, T.CREATED desc
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from sys_page where ID = #{id,jdbcType=VARCHAR} <![CDATA[ and ROW_DEFAULT <> '1' ]]>
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.Page">
+		insert into sys_page (
+		ID,
+		SYS_ID,
+		PAGE_TYPE,
+		EXT_ID,
+		MENU_ID,
+		ROW_ICON,
+		ROW_TITLE,
+		ROW_WIDTH,
+		ROW_HEIGHT,
+		SORT_NO,
+		CREATER,
+		CREATED,
+		MODIFIER,
+		MODIFIED,
+		REMARK,
+		ROW_DEFAULT,
+		ROW_VALID,
+		EXT1, EXT2, EXT3,
+		ROW_VERSION
+		)
+		values
+		(#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{pageType,jdbcType=VARCHAR},
+		#{extId,jdbcType=VARCHAR},
+		#{menuId,jdbcType=VARCHAR},
+		#{rowIcon,jdbcType=VARCHAR},
+		#{rowTitle,jdbcType=VARCHAR},
+		#{rowWidth,jdbcType=VARCHAR},
+		#{rowHeight,jdbcType=VARCHAR},
+		#{sortNo,jdbcType=INTEGER},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{remark,jdbcType=VARCHAR},
+		#{rowDefault,jdbcType=VARCHAR},
+		#{rowValid,jdbcType=VARCHAR},
+		#{ext1,jdbcType=VARCHAR},
+		#{ext2,jdbcType=VARCHAR},
+		#{ext3,jdbcType=VARCHAR},
+		#{rowVersion,jdbcType=DECIMAL}
+		)
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.sys.pojo.Page">
+		update sys_page
+		set
+		EXT_ID = #{extId,jdbcType=VARCHAR},
+		MENU_ID = #{menuId,jdbcType=VARCHAR},
+		ROW_ICON = #{rowIcon,jdbcType=VARCHAR},
+		ROW_TITLE = #{rowTitle,jdbcType=VARCHAR},
+		ROW_WIDTH = #{rowWidth,jdbcType=VARCHAR},
+		ROW_HEIGHT = #{rowHeight,jdbcType=VARCHAR},
+		SORT_NO = #{sortNo,jdbcType=INTEGER},
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		REMARK = #{remark,jdbcType=VARCHAR},
+		ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		EXT1 = #{ext1,jdbcType=VARCHAR},
+		EXT2 = #{ext2,jdbcType=VARCHAR},
+		EXT3 = #{ext3,jdbcType=VARCHAR},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

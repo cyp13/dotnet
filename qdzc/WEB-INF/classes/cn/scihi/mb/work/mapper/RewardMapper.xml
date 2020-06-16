@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.RewardMapper">
+	<select id="queryReward" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select
+		t.id as "id",
+		tt.pid as "pid",
+		t.title as "title",
+		t.form_code as "form_code",
+		t.service_type as "service_type",
+		t.service_type_name as "service_type_name",
+		t.service_name as "service_name",
+		t.county as
+		"county",
+		o.org_name as "county_name",
+		t.branch_office as
+		"branch_office",
+		o2.org_name as "branch_office_name",
+		t.channel as
+		"channel",
+		o3.org_name as "channel_name",
+		t.channel_phone as
+		"channel_phone",
+		t.user_phone as "user_phone",
+		t.creater as "creater",
+		t.created as "created",
+		t.description as "description",
+		t.remark as "remark",
+		t.status as "status",
+		t.ext1 as "ext1",
+		t.ext2 as "ext2",
+		t.row_version as "row_version",
+		jhp.STATE_
+		from t_work_reward t
+		left join sys_org o
+		on t.county = o.org_code
+		left join sys_org o2
+		on
+		t.branch_office = o2.org_code
+		left join sys_org o3
+		on t.channel =
+		o3.org_code
+		left join t_task tt
+		on t.id = tt.form_id
+		left join jbpm4_hist_procinst jhp on jhp.ID_ = tt.PID
+		where 1=1
+		<if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+		<if test="null != pid and '' != pid">
+			and tt.pid = #{pid}
+		</if>
+		<if test="null != service_type and '' != service_type">
+			and t.service_type = #{service_type}
+		</if>
+		<if test="null != county and '' != county">
+			and t.county = #{county}
+		</if>
+		<if test="null != branch_office and '' != branch_office">
+			and t.branch_office = #{branch_office}
+		</if>
+		<if test="null != channel and '' != channel">
+			and t.channel = #{channel}
+		</if>
+		<if test="null != channel_phone and '' != channel_phone">
+			and t.channel_phone like  concat('%',#{channel_phone},'%')
+		</if>
+		<if test="null != user_phone and '' != user_phone">
+			and t.user_phone like  concat('%',#{user_phone},'%')
+		</if>
+		<choose>
+			<when test="null != orderStr and '' != orderStr">
+				${orderStr}
+			</when>
+			<otherwise>
+				order by t.CREATED desc
+			</otherwise>
+		</choose>
+	</select>
+
+	<insert id="insertReward" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select
+			uuid()
+		</selectKey>
+		
+		insert into
+		t_work_reward(id,title,form_code,service_type,service_type_name,service_name,county,branch_office,channel,channel_phone,user_phone,creater,created,row_version,status,remark,description,enterprise_flag)
+		values(#{id},#{title},#{form_code},#{service_type},#{service_type_name},#{service_name},#{county},#{branch_office},#{channel},#{channel_phone},#{user_phone},#{userName},now(),#{row_version},#{status},#{remark},#{description},#{enterprise_flag})
+	</insert>
+
+	<update id="updateReward" parameterType="java.util.HashMap">
+		update t_work_reward set
+		<if test="null != title and '' != title">
+			title=#{title},
+		</if>
+		<if test="null != user_phone and '' != user_phone">
+			user_phone=#{user_phone},
+		</if>
+		<if test="null != service_type and '' != service_type">
+			service_type=#{service_type},
+		</if>
+		<if test="null != service_type_name and '' != service_type_name">
+			service_type_name=#{service_type_name},
+		</if>
+		<if test="null != service_name and '' != service_name">
+			service_name=#{service_name},
+		</if>
+		<if test="null != description and '' != description">
+			description=#{description},
+		</if>
+		<if test="null != remark and '' != remark">
+			remark=#{remark},
+		</if>
+		<if test="null != status and '' != status">
+			status=#{status},
+		</if>
+		<if test="null != ext1 and '' != ext1">
+			ext1=#{ext1},
+		</if>
+		<if test="null != ext2 and '' != ext2">
+			ext2=#{ext2},
+		</if>
+		row_version=#{row_version},
+		modifier=#{userName},
+		modified=now()
+		where id=#{id}
+	</update>
+
+	<delete id="deleteReward" parameterType="java.lang.String">
+		delete from
+		t_work_reward
+		where
+		id=#{id}
+	</delete>
+</mapper>

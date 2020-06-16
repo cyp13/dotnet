@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.report.mapper.DsMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.report.pojo.Ds">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="DS_NAME" jdbcType="VARCHAR" property="dsName" />
+		<result column="DS_TYPE" jdbcType="VARCHAR" property="dsType" />
+		<result column="DRIVER_CLASS" jdbcType="VARCHAR" property="driverClass" />
+		<result column="URL" jdbcType="VARCHAR" property="url" />
+		<result column="USER_NAME" jdbcType="VARCHAR" property="userName" />
+		<result column="PASSWORD" jdbcType="VARCHAR" property="password" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, SYS_ID, DS_NAME, DS_TYPE, DRIVER_CLASS, URL, USER_NAME, PASSWORD, CREATER, CREATED,
+		MODIFIER, MODIFIED, REMARK, ROW_DEFAULT, ROW_VALID, EXT1, EXT2,
+		EXT3, ROW_VERSION
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="cn.scihi.report.pojo.Ds"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_ds
+		where 1 = 1
+		and SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<![CDATA[ and ROW_VALID <> '9' ]]>
+		<if test="null != id and '' != id">
+			and ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != dsName and '' != dsName">
+			and DS_NAME = #{dsName,jdbcType=VARCHAR}
+		</if>
+		<if test="null != dsType and '' != dsType">
+			and DS_TYPE = #{dsType,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and DS_NAME like '%${keywords}%'
+		</if>
+		order by CREATED desc
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from sys_ds where ID = #{id,jdbcType=VARCHAR} <![CDATA[ and ROW_DEFAULT <> '1' ]]>
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.report.pojo.Ds">
+		insert into sys_ds (
+		ID,
+		SYS_ID,
+		DS_NAME,
+		DS_TYPE,
+		DRIVER_CLASS,
+		URL, 
+		USER_NAME,
+		PASSWORD,
+		CREATER,
+		CREATED,
+		MODIFIER,
+		MODIFIED,
+		REMARK,
+		ROW_DEFAULT,
+		ROW_VALID,
+		EXT1, EXT2, EXT3,
+		ROW_VERSION
+		)
+		values
+		(#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{dsName,jdbcType=VARCHAR},
+		#{dsType,jdbcType=VARCHAR},
+		#{driverClass,jdbcType=VARCHAR},
+		#{url,jdbcType=VARCHAR},
+		#{userName,jdbcType=VARCHAR},
+		#{password,jdbcType=VARCHAR},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{remark,jdbcType=VARCHAR},
+		#{rowDefault,jdbcType=VARCHAR},
+		#{rowValid,jdbcType=VARCHAR},
+		#{ext1,jdbcType=VARCHAR},
+		#{ext2,jdbcType=VARCHAR},
+		#{ext3,jdbcType=VARCHAR},
+		#{rowVersion,jdbcType=DECIMAL}
+		)
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.report.pojo.Ds">
+		update sys_ds
+		set
+		DS_NAME = #{dsName,jdbcType=VARCHAR},
+		DS_TYPE = #{dsType,jdbcType=VARCHAR},
+		DRIVER_CLASS = #{driverClass,jdbcType=VARCHAR},
+		URL = #{url,jdbcType=VARCHAR},
+		USER_NAME = #{userName,jdbcType=INTEGER},
+		PASSWORD = #{password,jdbcType=INTEGER},
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		REMARK = #{remark,jdbcType=VARCHAR},
+		ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		EXT1 = #{ext1,jdbcType=VARCHAR},
+		EXT2 = #{ext2,jdbcType=VARCHAR},
+		EXT3 = #{ext3,jdbcType=VARCHAR},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

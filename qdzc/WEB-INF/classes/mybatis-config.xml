@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration   
+    PUBLIC "-//mybatis.org//DTD Config 3.0//EN"  
+    "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+	<settings>
+		<setting name="logImpl" value="LOG4J" />
+		<setting name="jdbcTypeForNull" value="NULL" />
+	</settings>
+
+	<typeAliases>
+		<typeAlias alias="String" type="java.lang.String" />
+		<typeAlias alias="Date" type="java.util.Date" />
+		<typeAlias alias="Long" type="java.lang.Long" />
+		<typeAlias alias="Integer" type="java.lang.Integer" />
+		<typeAlias alias="Decimal" type="java.math.BigDecimal" />
+		<typeAlias alias="List" type="java.util.List" />
+		<typeAlias alias="Map" type="java.util.Map" />
+		<typeAlias alias="HashMap" type="java.util.HashMap" />
+	</typeAliases>
+
+	<!-- 插件配置，spring的sqlSessionFactory中plugins不可重复配置 -->
+	<plugins>
+		<plugin interceptor="cn.scihi.mb.commons.interceptor.XssInterceptor" />
+		<plugin interceptor="cn.scihi.mb.commons.interceptor.PagePlugin" />		
+	</plugins>
+</configuration>

@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.MsgMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.Msg">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="MSG_TYPE" jdbcType="VARCHAR" property="msgType" />
+		<result column="MSG_TITLE" jdbcType="VARCHAR" property="msgTitle" />
+		<result column="MSG_CONTENT" jdbcType="VARCHAR" property="msgContent" />
+		<result column="MSG_LEVEL" jdbcType="VARCHAR" property="msgLevel" />
+		<result column="MSG_STATUS" jdbcType="VARCHAR" property="msgStatus" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="EXT4" jdbcType="VARCHAR" property="ext4" />
+		<result column="EXT5" jdbcType="VARCHAR" property="ext5" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		T.ID, T.SYS_ID, T.MSG_TYPE, T.MSG_TITLE, T.MSG_LEVEL, T.MSG_STATUS, T.CREATER, T.CREATED,
+		T.MODIFIER, T.MODIFIED, T.REMARK, T.ROW_DEFAULT, T.ROW_VALID, T.ROW_VERSION
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="cn.scihi.sys.pojo.Msg"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		<if test="null != id and '' != id">
+			,T.EXT1 as "EXT4", T.EXT2 as "EXT5"
+		</if>
+			,count(T1.ID) as "EXT1", count(T2.ID) as "EXT2"
+		<if test="null != ext3 and '' != ext3">
+			,T.MSG_CONTENT, 1 as "EXT3"
+		</if>
+		from sys_msg T
+		left join sys_msg_record T1 on T.ID = T1.MSG_ID	 <!-- MSG_ID、READ_STATUS需要手动加索引 --> 
+		left join sys_msg_record T2 on T1.ID = T2.ID and T2.READ_STATUS in ('3','8','9')
+		where 1 = 1
+		and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<![CDATA[ and ROW_VALID <> '9' ]]>
+		<if test="null != id and '' != id">
+			and T.ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != msgType and '' != msgType">
+			<choose>
+				<when test="'!9' == msgType">
+					<![CDATA[ and T.MSG_TYPE <> '9' ]]>
+				</when>
+				<otherwise>
+					and T.MSG_TYPE = #{msgType,jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+		<if test="null != msgStatus and '' != msgStatus">
+			and T.MSG_STATUS = #{msgStatus,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and T.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and T.MSG_TITLE like '%${keywords}%'
+		</if>
+		<if test="null != creater and '' != creater">
+			and T.CREATER = #{creater,jdbcType=VARCHAR}
+		</if>
+		<if test="null != startTime and '' != startTime and null != endTime and '' != endTime">
+			and T.CREATED between #{startTime,jdbcType=TIMESTAMP} and #{endTime,jdbcType=TIMESTAMP}
+		</if>
+		group by <include refid="Base_Column_List" />
+		<if test="null != id and '' != id">
+			,T.EXT1,T.EXT2
+		</if>
+		<if test="null != ext3 and '' != ext3">
+			,T.MSG_CONTENT
+		</if>
+		order by T.MSG_STATUS, T.MODIFIED desc
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from sys_file where RELATED_ID = #{id,jdbcType=VARCHAR};
+		delete from sys_msg_record where MSG_ID = #{id,jdbcType=VARCHAR};
+		delete from sys_msg where ID = #{id,jdbcType=VARCHAR} <![CDATA[ and ROW_DEFAULT <> '1' ]]>
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.Msg">
+		insert into sys_msg (
+		ID,
+		SYS_ID,
+		MSG_TYPE,
+		MSG_TITLE,
+		MSG_CONTENT,
+		MSG_LEVEL, 
+		MSG_STATUS,
+		CREATER,
+		CREATED,
+		MODIFIER,
+		MODIFIED,
+		REMARK,
+		ROW_DEFAULT,
+		ROW_VALID,
+		EXT1, EXT2, EXT3,
+		ROW_VERSION
+		)
+		values
+		(#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{msgType,jdbcType=VARCHAR},
+		#{msgTitle,jdbcType=VARCHAR},
+		#{msgContent,jdbcType=VARCHAR},
+		#{msgLevel,jdbcType=VARCHAR},
+		#{msgStatus,jdbcType=VARCHAR},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{remark,jdbcType=VARCHAR},
+		#{rowDefault,jdbcType=VARCHAR},
+		#{rowValid,jdbcType=VARCHAR},
+		#{ext1,jdbcType=VARCHAR},
+		#{ext2,jdbcType=VARCHAR},
+		#{ext3,jdbcType=VARCHAR},
+		#{rowVersion,jdbcType=DECIMAL}
+		)
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.sys.pojo.Msg">
+		update sys_msg
+		set
+		MSG_TYPE = #{msgType,jdbcType=VARCHAR},
+		MSG_TITLE = #{msgTitle,jdbcType=VARCHAR},
+		MSG_CONTENT = #{msgContent,jdbcType=VARCHAR},
+		MSG_LEVEL = #{msgLevel,jdbcType=VARCHAR},
+		MSG_STATUS = #{msgStatus,jdbcType=INTEGER},
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		REMARK = #{remark,jdbcType=VARCHAR},
+		ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		EXT1 = #{ext1,jdbcType=VARCHAR},
+		EXT2 = #{ext2,jdbcType=VARCHAR},
+		EXT3 = #{ext3,jdbcType=VARCHAR},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

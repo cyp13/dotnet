@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.OpinionMapper">
+	<select id="queryOpinion" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select distinct
+		t.id as "id",
+		t.pid as "pid",
+		t.task_id as "task_id",
+		t.form_id as "form_id",
+		t.form_type as "form_type",
+		d.dict_name as "form_type_name",
+		t.file_ids as "file_ids",
+		t.task_name as "task_name",
+		t.opinion as "opinion",
+		t.result as "result",
+		t.creater as "creater",
+		t.created as "created",
+		su.USER_ALIAS
+		from t_work_opinion t 
+		left join sys_dict d
+		on t.form_type = d.dict_value and d.parent_id='formType'
+		left join sys_user su on su.USER_NAME = t.CREATER
+		where 1=1
+		<if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+		<if test="null != pid and '' != pid">
+			and t.pid = #{pid}
+		</if>
+		<if test="null != form_id and '' != form_id">
+			and t.form_id = #{form_id}
+		</if>
+		order by CREATED asc
+	</select>
+
+	<insert id="insertOpinion" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select
+			uuid()
+		</selectKey>
+		insert into
+		t_work_opinion(id,pid,task_id,form_id,form_type,file_ids,task_name,result,opinion,creater,created)
+		values(#{id},#{pid},#{taskId},#{form_id},#{form_type},#{file_ids},#{taskName},#{result},#{opinion},#{userName},now())
+	</insert>
+
+
+	<delete id="deleteOpinion" parameterType="java.lang.String">
+		delete from
+		t_work_opinion
+		where
+		id=#{id}
+	</delete>
+</mapper>

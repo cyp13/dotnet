@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.jbpm.mapper.FormMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.jbpm.pojo.Form">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="FORM_CODE" jdbcType="VARCHAR" property="formCode" />
+		<result column="FORM_NAME" jdbcType="VARCHAR" property="formName" />
+		<result column="FORM_TYPE" jdbcType="VARCHAR" property="formType" />
+		<result column="FORM_URL" jdbcType="VARCHAR" property="formUrl" />
+		<result column="FORM_CONTENT" jdbcType="VARCHAR" property="formContent" />
+		<result column="FORM_PARSE" jdbcType="VARCHAR" property="formParse" />
+		<result column="SORT_NO" jdbcType="INTEGER" property="sortNo" />
+		
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, SYS_ID, FORM_CODE, FORM_NAME, FORM_TYPE, FORM_URL, FORM_CONTENT, FORM_PARSE, SORT_NO, 
+		CREATER, CREATED, MODIFIER, MODIFIED, REMARK, ROW_DEFAULT, ROW_VALID,
+		EXT1, EXT2, EXT3, ROW_VERSION
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="cn.scihi.jbpm.pojo.Form"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_form
+		where 1 = 1
+		and SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<![CDATA[ and ROW_VALID <> '9' ]]>
+		<if test="null != id and '' != id">
+			and ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != formCode and '' != formCode">
+			and FORM_CODE = #{formCode,jdbcType=VARCHAR}
+		</if>
+		<if test="null != formName and '' != formName">
+			and FORM_NAME = #{formName,jdbcType=VARCHAR}
+		</if>
+		<if test="null != formType and '' != formType">
+			and FORM_TYPE = #{formType,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (FORM_CODE like '%${keywords}%'
+			or FORM_NAME like '%${keywords}%')
+		</if>
+		order by SORT_NO, FORM_TYPE, CREATED desc
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from sys_form where ID = #{id,jdbcType=VARCHAR} <![CDATA[ and ROW_DEFAULT <> '1' ]]>
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.jbpm.pojo.Form">
+		insert into sys_form (
+		ID,
+		SYS_ID,
+		FORM_CODE,
+		FORM_NAME,
+		FORM_TYPE,
+		FORM_URL, 
+		FORM_CONTENT,
+		FORM_PARSE,
+		SORT_NO,
+		CREATER,
+		CREATED,
+		MODIFIER,
+		MODIFIED,
+		REMARK,
+		ROW_DEFAULT,
+		ROW_VALID,
+		EXT1, EXT2, EXT3,
+		ROW_VERSION
+		)
+		values
+		(#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{formCode,jdbcType=VARCHAR},
+		#{formName,jdbcType=VARCHAR},
+		#{formType,jdbcType=VARCHAR},
+		#{formUrl,jdbcType=VARCHAR},
+		#{formContent,jdbcType=VARCHAR},
+		#{formParse,jdbcType=VARCHAR},
+		#{sortNo,jdbcType=INTEGER},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{remark,jdbcType=VARCHAR},
+		#{rowDefault,jdbcType=VARCHAR},
+		#{rowValid,jdbcType=VARCHAR},
+		#{ext1,jdbcType=VARCHAR},
+		#{ext2,jdbcType=VARCHAR},
+		#{ext3,jdbcType=VARCHAR},
+		#{rowVersion,jdbcType=DECIMAL}
+		)
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.jbpm.pojo.Form">
+		update sys_form
+		set
+		FORM_CODE = #{formCode,jdbcType=VARCHAR},
+		FORM_NAME = #{formName,jdbcType=VARCHAR},
+		FORM_TYPE = #{formType,jdbcType=VARCHAR},
+		FORM_URL = #{formUrl,jdbcType=VARCHAR},
+		FORM_CONTENT = #{formContent,jdbcType=INTEGER},
+		FORM_PARSE = #{formParse,jdbcType=INTEGER},
+		SORT_NO = #{sortNo,jdbcType=INTEGER},
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		REMARK = #{remark,jdbcType=VARCHAR},
+		ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		EXT1 = #{ext1,jdbcType=VARCHAR},
+		EXT2 = #{ext2,jdbcType=VARCHAR},
+		EXT3 = #{ext3,jdbcType=VARCHAR},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

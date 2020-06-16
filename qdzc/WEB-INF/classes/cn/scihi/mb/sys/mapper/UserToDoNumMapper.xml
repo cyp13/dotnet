@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.sys.mapper.UserToDoNumMapper">
+	<select id="queryUserToDoNum" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select
+		t.user_name as "user_name",
+		t.to_do_num as "to_do_num"
+		from t_user_todo_num t
+		where 1=1
+		<if test="null != userName and '' != userName">
+			and	t.user_name=#{userName}
+		</if>
+		order by t.to_do_num
+		asc
+	</select>
+	
+	<select id="queryUserToDoNumDiff" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select t.* from(
+		select t.user_name,t.to_do_num,count(jt.dbid_) jtnum from t_user_todo_num t
+		left join jbpm4_task jt
+		on t.user_name = jt.assignee_
+	
+		group by t.user_name,t.to_do_num)t
+		where t.to_do_num!= t.jtnum
+	</select>
+	
+	<update id="updateUserToDoNumDiff" parameterType="java.util.HashMap">
+		update t_user_todo_num
+		set to_do_num=#{to_do_num}
+		where user_name=#{userName}
+	</update>
+	
+
+	<insert id="insertUserToDoNum" parameterType="java.util.HashMap">
+		insert into
+		t_user_todo_num(user_name)
+		values(#{userName})
+	</insert>
+
+	<update id="updateUserToDoNum" parameterType="java.util.HashMap">
+		update t_user_todo_num
+		<set>
+			<if test="null != add_ and '' != add_">
+				to_do_num=to_do_num+1,
+			</if>
+			<if test="null != sub_ and '' != sub_">
+				to_do_num=to_do_num-1,
+			</if>
+		</set>
+		where user_name=#{userName}
+	</update>
+
+	<delete id="deleteUserToDoNum" parameterType="java.lang.String">
+		delete from t_user_todo_num where
+		<choose>
+			<when test="null != _parameter and '' != _parameter">
+				id=#{id}
+			</when>
+			<otherwise>
+				1=1
+			</otherwise>
+		</choose>
+	</delete>
+</mapper>

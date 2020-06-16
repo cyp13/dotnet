@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+	<meta charset="utf-8" />
+	<title>规则详情</title>
+	<link rel="stylesheet" type="text/css" href="./lib/layui/css/layui.css" />
+	<link href="./lib/jQuery-Validation-Engine/validationEngine.jquery.min.css" rel="stylesheet">
+	<style type="text/css">
+		.layui-form-label {
+			width: 100px;
+		}
+		.layui-input-block {
+			margin-left: 130px;
+		}
+		.pom>.layui-form-select {
+			width: 80px;
+		}
+	</style>
+</head>
+<body>
+	<div id="app" class="layui-fluid">
+		<div class="layui-row">
+			<div class="layui-col-xs12">
+				<div class="layui-card-header" style="text-align: right;">
+					<button type="button" class="layui-btn layui-btn-sm" @click="save">保存</button>
+				</div>
+				<div class="layui-card-body">
+					<form class="layui-form" lay-filter="form">
+						<div class="layui-form-item">
+							<div class="layui-inline">
+								<label class="layui-form-label">规则名称：</label>
+								<div class="layui-input-inline">
+									<input type="text" class="layui-input validate[required, maxSize[25]]" autocomplete="off" name="name" />
+								</div>
+							</div>
+
+							<!-- <div class="layui-inline">
+								<label class="layui-form-label">是否稽核：</label>
+								<div class="layui-input-inline">
+									<input type="radio" name="if_check" value="1" lay-filter="if_check" title="稽核" />
+									<input type="radio" name="if_check" value="0" lay-filter="if_check" title="无需稽" />
+								</div>
+							</div>
+
+							<div class="layui-inline">
+								<label class="layui-form-label">是否抽样：</label>
+								<div class="layui-input-inline">
+									<input type="radio" name="if_sample" value="1" lay-filter="if_sample" title="抽样" />
+									<input type="radio" name="if_sample" value="0" lay-filter="if_sample" title="无需抽" />
+								</div>
+							</div> -->
+						</div>
+
+						<div class="layui-form-item">
+							<div class="layui-inline">
+								<label class="layui-form-label">考核范围：</label>
+								<div class="layui-input-inline">
+									<input type="radio" v-model="form.use_range" name="use_range" value="1" lay-filter="use_range" title="渠道/组" />
+									<input type="radio" v-model="form.use_range" name="use_range" value="0" lay-filter="use_range" title="个人" />
+								</div>
+							</div>
+
+							<div class="layui-inline">
+								<label class="layui-form-label">指标状态：</label>
+								<div class="layui-input-inline">
+									<input type="radio" name="row_valid" value="1" lay-filter="row_valid" title="启用" />
+									<input type="radio" name="row_valid" value="0" lay-filter="row_valid" title="停用" />
+								</div>
+							</div>
+							<!-- 
+							<div class="layui-inline">
+								<label class="layui-form-label">数据来源：</label>
+								<div class="layui-input-inline">
+									<input type="text" class="layui-input validate[maxSize[255], custom[url]]" autocomplete="off" name="dataurl" />
+								</div>
+							</div>
+							-->
+						</div>
+
+						<div class="layui-form-item">
+							<div class="layui-inline">
+								<label class="layui-form-label">规则分组：</label>
+								<div class="layui-input-inline">
+									<select class="layui-input" name="rule_group" lay-filter="rule_group">
+										<option value="1">基础工作</option>
+										<option value="2">销售动作</option>
+										<option value="3">承包业绩</option>
+									</select>
+								</div>
+							</div>
+							
+							<div class="layui-inline">
+								<label class="layui-form-label">考核单位：</label>
+								<div class="layui-input-inline">
+									<input type="radio" v-model="form.audit_unit" name="audit_unit" value="0" lay-filter="audit_unit" title="绝对值" />
+									<input type="radio" v-model="form.audit_unit" name="audit_unit" value="1" lay-filter="audit_unit" title="百分率" />
+								</div>
+							</div>
+							
+							<div class="layui-inline">
+								<label class="layui-form-label">考核指标：</label>
+								<div class="layui-input-inline" style="margin-right: 0px;">
+									<input type="text" class="layui-input validate[required, custom[integer], min[0], max[999]]" autocomplete="off" name="pass_score" />
+								</div>
+								<label class="layui-form-label" style="width: 15px;background-color: #cecece;" v-if="form.audit_unit == 1">%</label>
+							</div>
+						</div>
+						
+						<div class="layui-form-item">
+							<label class="layui-form-label">积分换算规则：</label>
+							<div class="layui-inline">
+								<label class="layui-form-label" style="width: 50px;background-color: #cecece;">1积分 = </label>
+								<div class="layui-input-inline" style="width: 100px;margin-right: 0px;">
+									<input type="text" class="layui-input validate[required, custom[number], custom[toFixed2], min[0], max[9999]]" autocomplete="off" name="convart_scale">
+								</div>
+								<label class="layui-form-label" style="width: 15px;background-color: #cecece;">元</label>
+								<div class="layui-input-inline" style="margin-left: 20px;">
+									<input type="checkbox" lay-skin="primary" name="use_for_all" value="1" lay-filter="use_for_all" title="全国统一标准" />
+								</div>
+							</div>
+						</div>
+						
+						<div class="layui-form-item">
+							<label class="layui-form-label">下发模式：</label>
+							<div class="layui-inline">
+								<input type="radio" name="issue_type" value="number" lay-filter="issue_type" title="数量" />
+								<input type="radio" name="issue_type" value="detail" lay-filter="issue_type" title="明细" />
+								<input type="radio" name="issue_type" value="thirdparty" lay-filter="issue_type" title="三方导入" />
+							</div>
+						</div>
+						
+						<div class="layui-form-item">
+							<div class="layui-inline">
+								<label class="layui-form-label">考核周期：</label>
+								<div class="layui-inline">
+									<!-- <input type="radio" name="assess_cycle" value="0" lay-filter="assess_cycle" title="年度" />
+									<input type="radio" name="assess_cycle" value="1" lay-filter="assess_cycle" title="半年度" />
+									<input type="radio" name="assess_cycle" value="2" lay-filter="assess_cycle" title="季度" /> -->
+									<input type="radio" name="assess_cycle" value="3" lay-filter="assess_cycle" title="月度" />
+								</div>
+							</div>
+							
+							<div class="layui-inline">
+								<label class="layui-form-label">开始时间：</label>
+								<div class="layui-input-inline" style="width: 100px;">
+									<input type="text" autocomplete="off" class="layui-input validate[required]" readonly name="task_start_time" lay-filter="task_start_time" />
+								</div>
+							</div>
+						</div>
+						
+						<div class="layui-form-item">
+							<div class="layui-inline">
+								<label class="layui-form-label">备注：</label>
+								<div class="layui-input-inline" style="width: 590px;">
+									<textarea class="layui-textarea validate[required, maxSize[200]]" placeholder="请输入备注" name="remark">{{form.remark}}</textarea>
+<!-- 									<input type="text" autocomplete="off" class="layui-input validate[required]" name="remark" /> -->
+								</div>
+							</div>
+						</div>
+						
+						<!-- 
+						<div class="layui-form-item" v-if="form.use_range == 1">
+							<div class="layui-inline">
+								<label class="layui-form-label">组/部门考核</label>
+								<div class="layui-input-block">
+									<input type="radio" name="pass_type" value="0" lay-filter="pass_type" title="组/部门成员只需一个满足" /><br />
+									<input type="radio" name="pass_type" value="1" lay-filter="pass_type" title="组/部门成员必须全部满足" /><br />
+									<input type="radio" name="pass_type" value="2" lay-filter="pass_type" title="组/部门成员平均值满足" /><br />
+									<input type="radio" name="pass_type" value="3" lay-filter="pass_type" title="组/部门成员按配置比例满足" />
+									<div class="layui-inline">
+										<div class="layui-input-inline" style="width: 100px;margin-right: 0px;">
+											<input type="text" autocomplete="off" class="layui-input validate[custom[number], min[0], max[100]]" name="pass_type_value" lay-filter="pass_type_value" />
+										</div>
+										<label class="layui-form-label" style="width: 15px; background-color: rgb(206, 206, 206);">%</label>
+									</div>
+								</div>
+							</div>
+						</div>
+						-->
+					</form>
+					
+					<form class="layui-form">
+						<div class="layui-form-item">
+							<label class="layui-form-label">考核规则：</label>
+							<div class="layui-input-block">
+								<div class="layui-collapse" lay-filter="collapse">
+									<div class="layui-colla-item">
+										<h2 class="layui-colla-title">
+											<span>首个考核周期</span>
+											<button type="button" class="layui-btn layui-btn-xs layui-btn-normal" @click="addFirstDetails()">添加</button>
+											<span>（请设置连续的考核区间并尽可能包含所有的可能）</span>
+										</h2>
+										<div class="layui-colla-content layui-show">
+											<table class="layui-table">
+												<colgroup>
+													<col width="5%" />
+													<col width="45%" />
+													<col width="5%" />
+													<col width="45%" />
+												</colgroup>
+												<tbody id="first-details"></tbody>
+											</table>
+										</div>
+									</div>
+									<div class="layui-colla-item">
+										<h2 class="layui-colla-title">
+											<span>常规考核周期</span>
+											<button type="button" class="layui-btn layui-btn-xs layui-btn-normal" @click="addDetails()">添加</button>
+											<span>（请设置连续的考核区间并尽可能包含所有的可能）</span>
+										</h2>
+										<div class="layui-colla-content layui-show">
+											<table class="layui-table">
+												<colgroup>
+													<col width="5%" />
+													<col width="45%" />
+													<col width="5%" />
+													<col width="45%" />
+												</colgroup>
+												<tbody id="details"></tbody>
+											</table>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
+	
+	<script type="text/x-jsrender" id="details-template">
+		<tr>
+			<td>
+				<label class="layui-form-label">具体规则：</label>
+			</td>
+			<td>
+				<div class="layui-input-inline" style="width: 60px;margin-right: 0px;">
+					<input type="text" class="layui-input validate[custom[number], funcCall[compare], custom[toFixed2], min[0], max[9999]]" autocomplete="off" data-field="min_value" name="min_value" value="{{:min_value}}" />
+				</div>
+				<div class="layui-form-mid layui-word-aux" style="margin-right: 0px; color: black !important; padding: 0px !important;">
+					<select data-field="calculate_value" lay-filter="calculate_value">
+						{{if audit_unit == 0}}
+						<option value="任务总数" {{if calculate_value == '任务总数'}}selected{{/if}}>&le; 任务总数 &lt;</option>
+						<option value="已执行数" {{if calculate_value == '已执行数'}}selected{{/if}}>&le; 已执行数 &lt;</option>
+						<option value="通过数" {{if calculate_value == '通过数'}}selected{{/if}}>&le; 通过数 &lt;</option>
+						<option value="不通过数" {{if calculate_value == '不通过数'}}selected{{/if}}>&le; 不通过数 &lt;</option>
+						{{else}}
+						<option value="完成数百分率" {{if calculate_value == '完成数百分率'}}selected{{/if}}>&le; 完成数百分率 &lt;</option>
+						{{/if}}
+						<option value="连续未达标次数" {{if calculate_value == '连续未达标次数'}}selected{{/if}}>&le; 连续未达标次数 &lt;</option>
+					</select>
+				</div>
+				<div class="layui-input-inline" style="width: 60px;">
+					<input type="text" class="layui-input validate[custom[number], funcCall[compare], custom[toFixed2], min[0], max[9999]]" autocomplete="off" data-field="max_value" name="max_value" value="{{:max_value}}" />
+				</div>
+			</td>
+			<td>
+				<label class="layui-form-label">积分规则：</label>
+			</td>
+			<td class="flag"> 
+				<div class="layui-form-item">
+					<div class="layui-inline">
+						<input type="radio" data-field="calculate_type" lay-filter="calculate_type" name="calculate_type" value="1" 
+							title="每与标准相差1" {{if calculate_type == 1 || !calculate_type}}checked{{/if}} />
+					</div>
+					<div class="layui-inline">
+						<div class="layui-input-inline" style="width: 80px;margin-right: 0px;">
+							<select data-field="pom" lay-filter="pom">
+								<option value="-1" {{if integral < 0 && calculate_type == 1}}selected{{/if}}>扣除</option>
+								<option value="1" {{if integral >= 0 && calculate_type == 1}}selected{{/if}}>奖励</option>
+							</select>
+						</div>
+						<div class="layui-input-inline" style="width: 60px;margin-right: 0px;">
+							<input type="text" class="layui-input validate[custom[number], custom[toFixed2], min[0], max[9999]]" autocomplete="off" data-field="integral" 
+								name="integral" value="{{if calculate_type == 1}}{{:~abs(integral)}}{{/if}}" />
+						</div>
+					</div>
+				</div>
+				
+				<div class="layui-form-item">
+					<div class="layui-inline">
+						<input type="radio" data-field="calculate_type" lay-filter="calculate_type" name="calculate_type" value="2" 
+							title="固定积分" {{if calculate_type == 2}}checked{{/if}} />
+					</div>
+					<div class="layui-inline">
+						<div class="layui-input-inline" style="width: 80px;margin-right: 0px;">
+							<select data-field="pom" lay-filter="pom">
+								<option value="1" {{if integral >= 0 && calculate_type == 2}}selected{{/if}}>奖励</option>
+								<option value="-1" {{if integral < 0 && calculate_type == 2}}selected{{/if}}>扣除</option>
+							</select>
+						</div>
+						<div class="layui-input-inline" style="width: 60px;margin-right: 0px;">
+							<input type="text" class="layui-input validate[custom[number], custom[toFixed2], min[0], max[9999]]" autocomplete="off" data-field="integral" 
+								name="integral" value="{{if calculate_type == 2}}{{:~abs(integral)}}{{/if}}" />
+						</div>
+					</div>
+				</div>
+				
+				<div class="layui-form-item">
+					<div class="layui-inline">
+						<input type="radio" data-field="calculate_type" lay-filter="calculate_type" name="calculate_type" value="3" 
+							title="无酬金" {{if calculate_type == 3}}checked{{/if}} />
+					</div>
+				</div>
+			</td>
+			<td>
+				<a class="layui-btn layui-btn-danger layui-btn-xs del-rule-item">删除</a>
+			</td>
+		</tr>
+	</script>
+
+
+	<script src="./lib/jquery/jquery.min.js"></script>
+	<script src="./lib/vue/vue.min.js"></script>
+	<script src="./lib/jsrender/jsrender.min.js"></script>
+	<script src="./lib/layui/layui.all.js"></script>
+	<script src="./lib/jQuery-Validation-Engine/jquery.validationEngine.min.js"></script>
+	<script src="./lib/jQuery-Validation-Engine/jquery.validationEngine-zh_CN.js"></script>
+	<script th:inline="javascript">
+		var ruleInfo = [[${ruleInfo}]], ruleItems = [[${ruleItems}]], id = [[${id}]], orgId = [[${orgId}]];
+	</script>
+	<script src="./modules/rule/js/details.js"></script>
+</body>
+</html>

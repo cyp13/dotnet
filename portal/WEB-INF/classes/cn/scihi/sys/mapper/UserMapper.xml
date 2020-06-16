@@ -1,0 +1,610 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.UserMapper">
+
+	<select id="getLoginFail" resultType="java.lang.String">
+	select user_level from sys_user where user_name=#{0}
+	</select>
+	
+	<update id="loginFail">
+	update sys_user set user_level=ifnull(user_level,0)+1 where user_name=#{0}
+	</update>
+	
+	<update id="resetFail">
+	update sys_user set user_level=0 where user_name=#{0}
+	</update>
+	
+	<select id="queryAllUserForUpdatePassword" resultMap="BaseResultMap">
+	select user_name, password, user_nation from sys_user where 1=1;
+	</select>
+	
+	<update id="updatePassword">
+	update sys_user set user_nation=ifnull(user_nation, password), password=#{password} where user_name=#{username}
+	</update>
+
+	<select id="queryOnlineStateByUserName" parameterType="java.util.Map" resultType="java.util.Map">
+	select DBID_, status
+	from sys_user_online ol
+	where ol.user_name=#{userName}
+	order by case when ol.online_time is null then 0 else 1 end desc, ol.online_time desc
+	limit 0,1
+	</select>
+	<insert id="insertOnline" parameterType="java.util.Map">
+		<selectKey resultType="java.lang.String" order="BEFORE" keyProperty="dbid">
+			select uuid()
+		</selectKey>
+		insert into sys_user_online(DBID_ ,sys_id ,user_name ,online_time ,offline_time ,status)
+		values(#{dbid}, #{sysId}, #{user_name}, #{online_time}, #{offline_time}, #{status});
+	</insert>
+	<insert id="updateOnline" parameterType="java.util.Map">
+		<selectKey resultType="java.lang.String" order="BEFORE" keyProperty="dbid">
+			select uuid()
+		</selectKey>
+		update sys_user_online set
+		<choose>
+			<when test="null != offline_time and '' != offline_time">
+				offline_time=#{offline_time}, status='不接单'
+			</when>
+			<otherwise>
+				online_time=#{online_time}, status='接单'
+			</otherwise>
+		</choose>
+		where DBID_=#{DBID_}
+	</insert>
+	
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.User">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="USER_NAME" jdbcType="VARCHAR" property="userName" />
+		<result column="PASSWORD" jdbcType="VARCHAR" property="password" />
+		<result column="USER_ALIAS" jdbcType="VARCHAR" property="userAlias" />
+		<result column="USER_SEX" jdbcType="VARCHAR" property="userSex" />
+		<result column="USER_PID" jdbcType="VARCHAR" property="userPid" />
+		<result column="USER_PARTY" jdbcType="VARCHAR" property="userParty" />
+		<result column="USER_NATION" jdbcType="VARCHAR" property="userNation" />
+		<result column="USER_TYPE" jdbcType="VARCHAR" property="userType" />
+		<result column="USER_LEVEL" jdbcType="VARCHAR" property="userLevel" />
+		<result column="USER_TITLE" jdbcType="VARCHAR" property="userTitle" />
+		<result column="USER_POSITION" jdbcType="VARCHAR" property="userPosition" />
+		<result column="USER_EDU" jdbcType="VARCHAR" property="userEdu" />
+		<result column="USER_EMAIL" jdbcType="VARCHAR" property="userEmail" />
+		<result column="OFFICE_PHONE" jdbcType="VARCHAR" property="officePhone" />
+		<result column="MOBILE_PHONE" jdbcType="VARCHAR" property="mobilePhone" />
+		<result column="ORG_ID" jdbcType="VARCHAR" property="orgId" />
+		<result column="LAST_LOGIN_IP" jdbcType="VARCHAR" property="lastLoginIp" />
+		<result column="LAST_LOGIN_TIME" jdbcType="TIMESTAMP" property="lastLoginTime" />
+		<result column="LOGIN_COUNT" jdbcType="INTEGER" property="loginCount" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+		<result column="BOSS_CODE" jdbcType="VARCHAR" property="bossCode" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		T.ID, T.SYS_ID, T.USER_NAME, T.USER_ALIAS, T.USER_SEX, T.USER_PID, 
+		T.USER_PARTY, T.USER_NATION, T.USER_TYPE, T.USER_LEVEL, T.USER_TITLE, T.USER_POSITION,
+		T.USER_EDU, T.USER_EMAIL, T.OFFICE_PHONE, T.MOBILE_PHONE, 
+		T.ORG_ID, T.LAST_LOGIN_IP, T.LAST_LOGIN_TIME, LOGIN_COUNT, 
+		T.CREATER, T.CREATED, T.MODIFIER, T.MODIFIED, T.REMARK, 
+		T.ROW_DEFAULT, T.ROW_VALID, (case when '0'=T.EXT1 then '0' else '1' end) as "EXT1",
+	    T.EXT2, T.EXT3, T.ROW_VERSION,T.BOSS_CODE,T.ifReceiveMessage
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="cn.scihi.sys.pojo.User"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		<if test="'true' == extMap.authentication_">
+			 ,T.PASSWORD
+		</if>
+		from sys_user T
+		<if test="'empty' == orgId or null != ext1 and '' != ext1">
+			left join sys_org O on T.ORG_ID = O.ID 
+		</if>
+		where 1 = 1
+		<![CDATA[ and T.ROW_VALID <> '9' ]]>
+		<if test="null != id and '' != id">
+			<choose>
+				<when test="id.indexOf(',') != -1">
+					and T.ID in (
+						<foreach collection="id.split(',')" item="uId" separator=",">
+							#{uId}
+						</foreach>
+					)
+				</when>
+				<otherwise>
+					and T.ID = #{id,jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+		<if test="null != sysId and '' != sysId">
+			and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != userName and '' != userName">
+			and T.USER_NAME = #{userName,jdbcType=VARCHAR}
+		</if>
+		<if test="null != userAlias and '' != userAlias">
+			and T.USER_ALIAS like '%${userAlias}%'
+		</if>
+		<choose>
+			<when test="null != ext1 and '' != ext1">
+				AND (O.ORG_PATH LIKE '${ext1}%' OR T.ORG_ID=#{orgId})
+			</when>
+			<when test="'empty' == orgId">
+				and T.ORG_ID is null
+				<![CDATA[ or (O.ORG_NAME is null and T.ORG_ID <> '-1') ]]>
+				<!-- and (T.ORG_ID is null or T.ORG_ID = '') -->
+			</when>
+			<otherwise>
+				<if test="null != orgId and '' != orgId">
+					and T.ORG_ID in (
+					<foreach collection="orgId.split(',')" item="item" index="index" separator=",">
+						#{item}
+					</foreach>
+					)
+					<!-- 
+					and T.ORG_ID = #{orgId,jdbcType=VARCHAR}
+					-->
+				</if>
+			</otherwise>
+		</choose>
+		<if test="null != userPid and '' != userPid">
+			and T.USER_PID = #{userPid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != mobilePhone and '' != mobilePhone">
+			and T.MOBILE_PHONE = #{mobilePhone,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and T.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (T.USER_NAME like '%${keywords}%'
+			or T.USER_ALIAS like '%${keywords}%'
+			or T.USER_PID like '%${keywords}%'
+			or T.MOBILE_PHONE like '%${keywords}%')
+		</if>
+		order by T.CREATED desc
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from sys_msg_record where USER_ID = #{id,jdbcType=VARCHAR};
+		
+		delete from sys_page where EXT_ID = #{id,jdbcType=VARCHAR};
+		delete from sys_user_role where USER_ID = #{id,jdbcType=VARCHAR};
+		
+		delete from sys_user where ID = #{id,jdbcType=VARCHAR} <![CDATA[ and ROW_DEFAULT <> '1' ]]>;
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.User">
+		insert into sys_user (
+		ID,
+		SYS_ID, 
+		USER_NAME, 
+		PASSWORD,
+		USER_ALIAS, 
+		USER_SEX,
+		USER_PID,
+		USER_PARTY,
+		USER_NATION,
+		USER_TYPE,
+		USER_LEVEL,
+		USER_TITLE,
+		USER_POSITION,
+		USER_EDU,
+		USER_EMAIL,
+		OFFICE_PHONE, 
+		MOBILE_PHONE,
+		ORG_ID,
+		LOGIN_COUNT, 
+		CREATER, 
+		CREATED,
+		MODIFIER, 
+		MODIFIED,
+		REMARK,
+		ROW_DEFAULT,
+		ROW_VALID, 
+		EXT1,
+		EXT2, 
+		EXT3, 
+		ROW_VERSION,
+		BOSS_CODE
+		)
+		values (
+		#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{userName,jdbcType=VARCHAR},
+		#{password,jdbcType=VARCHAR},
+		#{userAlias,jdbcType=VARCHAR},
+		#{userSex,jdbcType=VARCHAR},
+		#{userPid,jdbcType=VARCHAR},
+		#{userParty,jdbcType=VARCHAR},
+		#{userNation,jdbcType=VARCHAR},
+		#{userType,jdbcType=VARCHAR},
+		#{userLevel,jdbcType=VARCHAR},
+		#{userTitle,jdbcType=VARCHAR},
+		#{userPosition,jdbcType=VARCHAR},
+		#{userEdu,jdbcType=VARCHAR},
+		#{userEmail,jdbcType=VARCHAR},
+		#{officePhone,jdbcType=VARCHAR},
+		#{mobilePhone,jdbcType=VARCHAR},
+		#{orgId,jdbcType=VARCHAR},
+		#{loginCount,jdbcType=INTEGER},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{remark,jdbcType=VARCHAR},
+		#{rowDefault,jdbcType=VARCHAR},
+		#{rowValid,jdbcType=VARCHAR},
+		#{ext1,jdbcType=VARCHAR},
+		#{ext2,jdbcType=VARCHAR},
+		#{ext3,jdbcType=VARCHAR},
+		#{rowVersion,jdbcType=DECIMAL},
+		#{bossCode,jdbcType=DECIMAL}
+		)
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.sys.pojo.User">
+		update sys_user
+		set
+		<if test="null != password and '' != password">
+			PASSWORD = #{password},
+		</if>
+		USER_NAME = #{userName,jdbcType=VARCHAR},
+		USER_ALIAS = #{userAlias,jdbcType=VARCHAR},
+		USER_SEX = #{userSex,jdbcType=VARCHAR},
+		USER_PID = #{userPid,jdbcType=VARCHAR},
+		USER_PARTY = #{userParty,jdbcType=VARCHAR},
+		USER_NATION = #{userNation,jdbcType=VARCHAR},
+		USER_TYPE = #{userType,jdbcType=VARCHAR},
+		USER_LEVEL = #{userLevel,jdbcType=VARCHAR},
+		USER_TITLE = #{userTitle,jdbcType=VARCHAR},
+		USER_POSITION = #{userPosition,jdbcType=VARCHAR},
+		USER_EDU = #{userEdu,jdbcType=VARCHAR},
+		USER_EMAIL = #{userEmail,jdbcType=VARCHAR},
+		OFFICE_PHONE = #{officePhone,jdbcType=VARCHAR},
+		MOBILE_PHONE = #{mobilePhone,jdbcType=VARCHAR},
+		ORG_ID = #{orgId,jdbcType=VARCHAR},
+		<if test="null != lastLoginIp and null != lastLoginTime and null != loginCount">
+			LAST_LOGIN_IP = #{lastLoginIp,jdbcType=VARCHAR},
+			LAST_LOGIN_TIME = #{lastLoginTime,jdbcType=TIMESTAMP},
+			LOGIN_COUNT = #{loginCount,jdbcType=INTEGER},
+		</if>
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		REMARK = #{remark,jdbcType=VARCHAR},
+		ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		EXT1 = #{ext1,jdbcType=VARCHAR},
+		EXT2 = #{ext2,jdbcType=VARCHAR},
+		EXT3 = #{ext3,jdbcType=VARCHAR},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL},
+		<if test="null != ifReceiveMessage and '' != ifReceiveMessage">
+			ifReceiveMessage = #{ifReceiveMessage},
+		</if>
+		BOSS_CODE = #{bossCode,jdbcType=VARCHAR}
+		
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+	<update id="updateByPrimaryKeyIF" parameterType="cn.scihi.sys.pojo.User">
+		update sys_user
+		<set>
+		user_level=0,
+		<if test="null != password and '' != password">
+			PASSWORD = #{password},
+		</if>
+		<if test="null != userAlias and '' != userAlias">
+			USER_ALIAS = #{userAlias,jdbcType=VARCHAR},
+		</if>
+		<if test="null != userSex and '' != userSex">
+			USER_SEX = #{userSex,jdbcType=VARCHAR},
+		</if>
+		<if test="null != userPid and '' != userPid">
+			USER_PID = #{userPid,jdbcType=VARCHAR},
+		</if>
+		<if test="null != userParty and '' != userParty">
+			USER_PARTY = #{userParty,jdbcType=VARCHAR},
+		</if>
+		<if test="null != userNation and '' != userNation">
+			USER_NATION = #{userNation,jdbcType=VARCHAR},
+		</if>
+		<if test="null != userType and '' != userType">
+			USER_TYPE = #{userType,jdbcType=VARCHAR},
+		</if>
+		<if test="null != userLevel and '' != userLevel">
+			USER_LEVEL = #{userLevel,jdbcType=VARCHAR},
+		</if>
+		<if test="null != userTitle and '' != userTitle">
+			USER_TITLE = #{userTitle,jdbcType=VARCHAR},
+		</if>
+		<if test="null != userPosition and '' != userPosition">
+			USER_POSITION = #{userPosition,jdbcType=VARCHAR},
+		</if>
+		<if test="null != userEdu and '' != userEdu">
+			USER_EDU = #{userEdu,jdbcType=VARCHAR},
+		</if>
+		<if test="null != userEmail and '' != userEmail">
+			USER_EMAIL = #{userEmail,jdbcType=VARCHAR},
+		</if>
+		<if test="null != officePhone and '' != officePhone">
+			OFFICE_PHONE = #{officePhone,jdbcType=VARCHAR},
+		</if>
+		<if test="null != mobilePhone and '' != mobilePhone">
+			MOBILE_PHONE = #{mobilePhone,jdbcType=VARCHAR},
+		</if>
+		<if test="null != orgId and '' != orgId">
+			ORG_ID = #{orgId,jdbcType=VARCHAR},
+		</if>
+		<if test="null != lastLoginIp and null != lastLoginTime and null != loginCount">
+			LAST_LOGIN_IP = #{lastLoginIp,jdbcType=VARCHAR},
+			LAST_LOGIN_TIME = #{lastLoginTime,jdbcType=TIMESTAMP},
+			LOGIN_COUNT = #{loginCount,jdbcType=INTEGER},
+		</if>
+		<if test="null != modifier and '' != modifier">
+			MODIFIER = #{modifier,jdbcType=VARCHAR},
+		</if>
+		<if test="null != modified and '' != modified">
+			MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		</if>
+		<if test="null != remark and '' != remark">
+			REMARK = #{remark,jdbcType=VARCHAR},
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		</if>
+		<if test="null != ext1 and '' != ext1">
+			EXT1 = #{ext1,jdbcType=VARCHAR},
+		</if>
+		<if test="null != ext2 and '' != ext2">
+			EXT2 = #{ext2,jdbcType=VARCHAR},
+		</if>
+		<if test="null != ext3 and '' != ext3">
+			EXT3 = #{ext3,jdbcType=VARCHAR},
+		</if>
+		<if test="null != rowVersion and '' != rowVersion">
+			ROW_VERSION = #{rowVersion,jdbcType=DECIMAL},
+		</if>
+		<if test="null != bossCode and '' != bossCode">
+			BOSS_CODE = #{bossCode,jdbcType=VARCHAR}
+		</if>
+		</set>
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+	<select id="queryUserByRole" parameterType="HashMap" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_user T
+		left join sys_user_role T1 on T.ID = T1.USER_ID and T1.ROLE_ID = #{roleId,jdbcType=VARCHAR}
+		left join sys_org T2 on T.ORG_ID = T2.ID 
+		<if test="null != sysId and '' != sysId">
+			and T.SYS_ID = T1.SYS_ID
+		</if>
+		where 1 = 1 
+		<![CDATA[ and T.ROW_VALID <> '9' ]]>
+		<if test="null != sysId and '' != sysId">
+			and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		</if>
+		<if test="'role' == flag">
+			and T1.ROLE_ID is not null
+		</if>
+		<if test="'all' == flag">
+			and T1.ROLE_ID is null
+		</if>
+		<!-- <if test="null != userAlias and '' != userAlias">
+			and T.USER_ALIAS like '%${userAlias}%'
+		</if> -->
+		<if test="null != rowValid and '' != rowValid">
+			and T.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (T.USER_NAME like '%${keywords}%'
+			or T.USER_ALIAS like '%${keywords}%'
+			or T.USER_PID like '%${keywords}%'
+			or T.MOBILE_PHONE like '%${keywords}%'
+			or T2.ORG_NAME like '%${keywords}%')
+		</if>
+		order by T.CREATED desc
+	</select>
+	
+	<select id="queryUserByRoleAndOrgPath" parameterType="HashMap" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_user T
+		left join sys_user_role T1 on T.ID = T1.USER_ID
+		left join sys_role t3 on t3.ID = t1.role_id
+		left join sys_org T2 on T.ORG_ID = T2.ID
+		where T.SYS_ID = #{sysId,jdbcType=VARCHAR} and T.ROW_VALID = 1
+		<if test="null != online and '' != online">
+			and T.ext1=#{online}
+		</if>
+		<if test="null != orgPath and '' != orgPath">
+			and T2.org_path like '${orgPath}%'
+		</if>
+		<if test="null != orgIds and '' != orgIds">
+			and T2.ID in (
+			<foreach collection="orgIds.split(',')" item="orgId" index="index" separator=",">
+				#{orgId,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<choose>
+			<when test="null != roleId and '' != roleId">
+				and t3.id = #{roleId,jdbcType=VARCHAR}
+			</when>
+			<when test="null != roleName and '' != roleName">
+				and t3.role_name = #{roleName,jdbcType=VARCHAR}
+			</when>
+			<otherwise>
+				and 1=2
+			</otherwise>
+		</choose>
+		order by T.CREATED desc
+	</select>
+	
+	<select id="queryUserIdByOrgIdAndRoleId" parameterType="HashMap" resultType="java.lang.String">
+		select distinct T.ID
+		from sys_user T
+		<if test="null != roleIds and '' != roleIds">
+			left join sys_user_role T1 on T.ID = T1.USER_ID
+		</if>
+		where 1 = 1
+		<if test="null != orgIds and '' != orgIds">
+			and T.ORG_ID in (
+			<foreach collection="orgIds.split(',')" item="orgId" index="index" separator=",">
+				#{orgId,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="null != roleIds and '' != roleIds">
+			and T1.ROLE_ID in (
+			<foreach collection="roleIds.split(',')" item="roleId" index="index" separator=",">
+				#{roleId,jdbcType=VARCHAR}
+			</foreach>
+			)
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and T.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+	</select>
+	<select id="selectUserByPrimaryKey" parameterType="cn.scihi.sys.pojo.User" resultMap="BaseResultMap">
+		SELECT 
+		<include refid="Base_Column_List" />
+		,T.PASSWORD
+		FROM sys_user T
+		WHERE
+		<if test="null != id and '' != id">
+			<choose>
+				<when test="id.indexOf(',') != -1">
+					T.ID in (
+						<foreach collection="id.split(',')" item="uId" separator=",">
+							#{uId}
+						</foreach>
+					)
+				</when>
+				<otherwise>
+					T.ID = #{id,jdbcType=VARCHAR}
+				</otherwise>
+			</choose>
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and T.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+	</select>
+	
+	<select id="queryUserByRoleNameOrUserName" parameterType="java.util.Map" resultType="java.util.Map">
+		select
+		su.USER_NAME
+		,su.USER_ALIAS
+		,su.MOBILE_PHONE
+		,su.ifReceiveMessage
+		from sys_user su
+		left join sys_user_role sur on sur.USER_ID=su.ID
+		left join sys_role sr on sr.ID=sur.ROLE_ID
+		where 1=1
+		<if test="null != roleName and '' != roleName">
+			and sr.ROLE_NAME = #{roleName}
+		</if>
+		<if test="null != userName and '' != userName">
+			and su.USER_NAME = #{userName}
+		</if>
+		and su.EXT1 = 1
+		and su.ifReceiveMessage = 1
+		GROUP BY su.USER_NAME
+	</select>
+	
+	<select id="queryDictionariesForPhone" resultType="java.util.Map">
+		select
+		DICT_NAME
+		,DICT_VALUE
+		,ROW_VALID
+		from sys_dict 
+		where PARENT_ID = 'sms_number'
+		and ROW_VALID = '1'
+	</select>
+	
+	<select id="queryDictionariesForSmsContent" resultType="java.util.Map">
+		select
+		DICT_NAME
+		,DICT_VALUE
+		from sys_dict 
+		where DICT_TYPE = 'sms_content'
+	</select>
+	
+	<update id="saveRoleInfo">
+		update t_work_governmentresources_node set 
+		<if test="null != nodeRoleName and '' !=  nodeRoleName">
+		nodeRoleName = #{nodeRoleName}
+		</if>
+		where form_id = #{id}
+	</update>
+	
+	<select id="queryDispatchUser" parameterType="java.util.HashMap" resultType="java.util.Map">
+		select GROUP_CONCAT(user_name) user_names, to_do_num from(
+			select distinct t.user_name as "user_name" ,count(task.DBID_) as "to_do_num"
+			from sys_user t
+			left join sys_org o on t.org_id = o.id
+			left join sys_user_role r on t.id = r.user_id
+			left join sys_role role on r.role_id=role.id
+			left join jbpm4_task task on t.user_name = task.assignee_
+			where t.row_valid='1'
+			and o.ext1 = #{enterpriseFlag}
+			and (t.ext1 = '1' or t.ext1 is null)
+			<if test="null != roleName and '' != roleName">
+				and role.role_name = #{roleName}
+			</if>
+			group by t.user_name
+		)tmp group by to_do_num order by to_do_num limit 0,1
+	</select>
+	
+	<select id="queryGovernmentResourcesInfos" parameterType="java.util.HashMap" resultType="java.util.Map">
+		select
+		form_code
+		,customer_manager
+		from t_work_governmentresources
+		where 1=1
+		<if test="null != id and '' != id">
+			and id=#{id}
+		</if>
+	</select>
+	
+	<select id="querygovernmentResourcesNodeInfos" parameterType="java.util.HashMap" resultType="java.util.Map">
+		select
+		id
+		,form_id
+		,pid
+		,creater
+		,created
+		,node_name
+		,user_name
+		from t_work_governmentresourcesnode
+		where 1=1
+		<if test="null != form_id and ''!= form_id">
+			and form_id=#{form_id}
+		</if>
+	</select>
+	
+	<insert id="insertGovernmentResourcesInfos" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select
+			uuid()
+		</selectKey>
+		insert into
+		t_work_governmentresourcesnode(id,pid,form_id,creater,created,node_name,user_name)
+		values(#{id},#{pid},#{form_id},#{userName},now(),#{roleName},#{user_name})
+	</insert>
+	
+	<insert id="insertCanBackNode" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE" keyProperty="id">
+			select uuid()
+		</selectKey>
+		insert into
+		t_work_governmentresourcesbacknode(id,form_id,pid,can_back_node,created)
+		values(#{id},#{form_id},#{pid},#{can_back_node},now())
+	</insert>
+</mapper>

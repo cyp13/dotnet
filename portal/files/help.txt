@@ -1,0 +1,39 @@
+基础环境：jdk7+、tomcat8+、ie9+、oracle12、mysql5.5、mssql2012
+
+一、流程接口
+token：http://localhost:8080/portal/jsp/sys/token.jsp
+用户登录：http://localhost:8080/portal/api/login.do?j_username=&j_password=
+登录信息：http://localhost:8080/portal/api/sys/myUser.do?callback=setMyUser&sysId=&token=
+
+启动流程：http://localhost:8080/portal/api/jbpm/startProcessInstance.do?sysId_=系统id&pdId=流程定义名称&owner_=登录账号&form_=业务历史表单&token=
+已办流程：http://localhost:8080/portal/api/jbpm/queryProcessInstance.do?sysId=系统id&userName=登录账号&token=
+待办任务：http://localhost:8080/portal/api/jbpm/queryTask.do?sysId=系统id&userName=登录账号&token=
+
+处理任务：http://localhost:8080/portal/api/jbpm/completeTask.do?taskId=任务id&userName=登录账号&result=完成、回退、驳回、终止、...&desc=意见&token=
+删除流程：http://localhost:8080/portal/api/jbpm/deleteProcessInstance.do?pId=流程实例id&token=
+任务历史：http://localhost:8080/portal/api/jbpm/queryHisTask.do?pId=流程实例id&token=
+任务变量：http://localhost:8080/portal/api/jbpm/queryVariable.do?pId=流程实例id&taskId=任务id&key=key&token=
+流程图：http://localhost:8080/portal/api/jbpm/designerView.do?pId=流程实例id&token=
+
+查询附件：http://localhost:8080/portal/api/sys/queryFile.do?sysId=系统id&relatedId=业务id&token=
+删除附件：http://localhost:8080/portal/api/sys/deleteFile.do?sysId=系统id&id=附件id&token=
+上传附件：http://localhost:8080/portal/api/sys/uploadFile.do?sysId=系统id&parentId=目录id&relatedId=业务id&token=
+下载附件：http://localhost:8080/portal/api/sys/downloadFile.do?sysId=系统id&id=附件id&token=
+
+二、更新说明
+1、主框架tab接口：
+	menuItem("菜单名称", "url"); closeItem("url"); refreshItem("url");
+2、跨域请使用window.parent.postMessage(obj,'*');
+3、解决jfreechart图片模糊，设计器使用自定义cn.scihi.commons.util.JRChartExt类
+4、tomcmat7无法传递有${}特殊符号的参数，建议使用tomcat8，否则EL表达式会解析错误
+5、为防止中文url出现404错误，请在tomcat配置文件中设置URIEncoding="UTF-8"
+6、jfreechart在linux下中文乱码解决方案：
+	cp simsun.ttf $JAVA_HOME/jre/lib/fonts/fallback	重启tomcat显示正常
+	ln -s $FONTS_PATH/FONT_DIR $JAVA_HOME/jre/lib/fonts/fallback
+
+三、其它
+wsimport -d d: http://localhost:8080/portal/api/ws/sys?wsdl
+
+工单系统：http://192.168.5.164:8080/portal/api/login.do?j_username=myadmin&j_keywords=111111&j_userId=123456&j_url=/api/jbpm/mywork.do
+通知公告：http://192.168.5.164:8080/portal/api/login.do?j_username=admin&j_keywords=admin&j_userId=123456&j_url=/api/sys/msgList.do
+我的消息：http://192.168.5.164:8080/portal/api/login.do?j_username=admin&j_keywords=admin&j_userId=123456&j_url=/api/sys/msg.do

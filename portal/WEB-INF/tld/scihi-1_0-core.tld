@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+
+<taglib xmlns="http://java.sun.com/xml/ns/j2ee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd"
+	version="2.0">
+
+	<description>scihi jstl 1.0 core library</description>
+	<display-name>scihi jstl core</display-name>
+	<tlib-version>1.0</tlib-version>
+	<short-name>s</short-name>
+	<uri>http://java.scihi.cn/jsp/jstl/core</uri>
+
+	<tag>
+		<name>menu</name>
+		<tag-class>cn.scihi.commons.tag.MenuTag</tag-class>
+		<body-content>JSP</body-content>
+		<attribute>
+			<name>menuTypes</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>userId</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>type</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>dict</name>
+		<tag-class>cn.scihi.commons.tag.DictTag</tag-class>
+		<body-content>JSP</body-content>
+		<attribute>
+			<name>dictType</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>dictName</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>type</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>name</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>value</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>style</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>clazz</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>other</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>ds</name>
+		<tag-class>cn.scihi.commons.tag.DsTag</tag-class>
+		<body-content>JSP</body-content>
+		<attribute>
+			<name>dsType</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>name</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>style</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>clazz</name>
+			<required>false</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+
+	<tag>
+		<name>file</name>
+		<tag-class>cn.scihi.commons.tag.FileTag</tag-class>
+		<body-content>JSP</body-content>
+		<attribute>
+			<name>file</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+		<attribute>
+			<name>prop</name>
+			<required>true</required>
+			<rtexprvalue>true</rtexprvalue>
+		</attribute>
+	</tag>
+
+	<function>
+		<name>getSys</name>
+		<function-class>cn.scihi.commons.tag.Functions</function-class>
+		<function-signature>java.lang.Object getSys(java.lang.String)</function-signature>
+	</function>
+
+	<function>
+		<name>getSysConstant</name>
+		<function-class>cn.scihi.commons.tag.Functions</function-class>
+		<function-signature>java.lang.Object getSysConstant(java.lang.String)</function-signature>
+	</function>
+
+	<function>
+		<name>getDict</name>
+		<function-class>cn.scihi.commons.tag.Functions</function-class>
+		<function-signature>java.lang.Object getDict(java.lang.String,java.lang.String)</function-signature>
+	</function>
+	
+	<function>
+		<name>getVariable</name>
+		<function-class>cn.scihi.commons.tag.Functions</function-class>
+		<function-signature>java.lang.Object getVariable(java.lang.String,java.lang.String,java.lang.String)</function-signature>
+	</function>
+	
+	<function>
+		<name>getFile</name>
+		<function-class>cn.scihi.commons.tag.Functions</function-class>
+		<function-signature>java.lang.Object getFile(java.lang.String)</function-signature>
+	</function>
+
+	<function>
+		<name>getProp</name>
+		<function-class>cn.scihi.commons.util.Utils</function-class>
+		<function-signature>java.lang.Object getProp(java.lang.String)</function-signature>
+	</function>
+
+	<function>
+		<name>getDate</name>
+		<function-class>cn.scihi.commons.util.Utils</function-class>
+		<function-signature>java.lang.Object getDate(java.lang.String)</function-signature>
+	</function>
+</taglib>

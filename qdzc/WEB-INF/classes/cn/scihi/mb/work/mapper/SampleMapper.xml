@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.SampleMapper">
+	<select id="querySample" parameterType="java.util.HashMap"
+		resultType="java.util.Map"> 
+		SELECT PS.SAMPLEID,PS.CREATTIME,ifnull(SO.ORG_NAME,'全部')
+		ORG_NAME,ps.SAMPLE_GRADE,ps.SAMPLE_SCOPE_DATE,PS.WORK_SUM,ps.SAMPLE_CONUTSUM,PS.STATIS
+		FROM p_sample ps
+		LEFT JOIN sys_org SO ON SO.ID=ps.SAMPLE_SCOPE WHERE PS.STATIS=0 AND PS.SYS_ID=#{sysId}
+	</select>
+
+	<select id="queryCountLimit" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		SELECT COUNT(*)work_sum FROM ${workTable} twa
+		WHERE twa.`STATUS`=2 
+		<if test=" null != SAMPLE_SCOPE and '-1' != SAMPLE_SCOPE">
+			AND twa.COUNTY=#{SAMPLE_SCOPE}
+		</if>
+		AND twa.CREATED BETWEEN DATE_FORMAT(#{STARTDATE}, '%Y-%m-%d
+		00:00:00') AND DATE_FORMAT(DATE_ADD(#{ENDDATE},INTERVAL 1
+		DAY),'%Y-%m-%d 00:00:00')
+	</select>
+
+
+
+
+	<insert id="insertSample" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="SAMPLEID">
+			select
+			uuid()
+		</selectKey> 
+		insert into
+		p_sample
+		(SAMPLEID,
+		SYS_ID,
+		CREATTIME,
+		SAMPLE_SCOPE,
+		SAMPLE_SCOPE_DATE,
+		WORK_SUM,
+		SAMPLE_CONUTSUM,
+		STATIS,
+		CREATER,
+		EXT1,
+		EXT2,
+		EXT3,
+		EXT4,
+		EXT5)
+		values(
+		#{SAMPLEID},
+		#{sysId},
+		NOW(),
+		#{SAMPLE_SCOPE},
+		CONCAT_WS(' — ',#{STARTDATE},#{ENDDATE}),
+		#{WORK_SUM},
+		#{SAMPLE_CONUTSUM},
+		0,
+		#{CREATER},
+		#{EXT1},
+		#{EXT2},
+		#{EXT3},
+		#{EXT4},
+		#{EXT5}
+		)
+
+	</insert>
+	<insert id="insertSampleTable" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="SAMPLETABLEID">
+			select
+			uuid()
+		</selectKey>
+
+		insert into
+		p_sample_table
+		(SAMPLETABLEID,
+		FORMTYPE,
+		FORMSUM,
+		SAMPLESUM,
+		SAMPLEID,
+		EXT1,
+		EXT2,
+		EXT3,
+		EXT4,
+		EXT5
+		)
+		values(
+		#{SAMPLETABLEID},
+		#{pName},
+		#{work_sum},
+		#{sample_sum},
+		#{SAMPLEID},
+		#{EXT1},
+		#{EXT2},
+		#{EXT3},
+		#{EXT4},
+		#{EXT5}
+		)
+	</insert>
+	<insert id="insertSampleList" parameterType="java.util.HashMap">
+
+		insert into p_sample_list
+		SELECT UUID() SAMPLELISTID,works.FORM_CODE FORM_CODE,works.title TITLE,so.ORG_NAME ORG_NAME, 
+		CONCAT(works.SERVICE_TYPE_NAME,if(works.SERVICE_TYPE_DETAIL_NAME is  null ||works.SERVICE_TYPE_DETAIL_NAME ='' ,'',CONCAT('-',works.SERVICE_TYPE_DETAIL_NAME))) YWTYPE,
+		works.CREATED CREATERTIME,null GRADE,ta.pid PID,works.id FROMID,#{SAMPLETABLEID} SAMPLETABLEID,
+		so1.ORG_NAME BRANCH_OFFICE_NAME,
+		so2.ORG_NAME CHANNEL_NAME,
+		works.CHANNEL CHANNEL,
+		works.CREATER CREATER,
+		works.MODIFIER MODIFIER,
+		works.CHANNEL_PHONE CHANNEL_PHONE,
+		null EXT1,
+		null EXT2,
+		null EXT3,
+		null EXT4,
+		null EXT5
+		FROM ${workTable} works 
+		LEFT JOIN sys_org so ON works.COUNTY=so.id  
+		LEFT JOIN sys_org so1 ON works.BRANCH_OFFICE=so1.id  
+		LEFT JOIN sys_org so2 ON works.CHANNEL=so2.id  
+		LEFT JOIN t_task ta ON ta.FORM_ID=works.ID  
+		WHERE   works.`STATUS`=2  AND
+		 	works.CREATED BETWEEN DATE_FORMAT(#{STARTDATE}, '%Y-%m-%d
+		00:00:00') AND DATE_FORMAT(DATE_ADD(#{ENDDATE},INTERVAL 1
+		DAY),'%Y-%m-%d 00:00:00') 
+		<if test=" null != SAMPLE_SCOPE and '-1' != SAMPLE_SCOPE">
+		 AND works.COUNTY= #{SAMPLE_SCOPE} 
+		</if>  
+		LIMIT 0,${sample_sum}
+	</insert>
+
+	<select id="querySampleListBySampleId" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		SELECT
+		<if test="false">
+			psl.SAMPLELISTID,
+			psl.FORM_CODE,
+			psl.TITLE,
+			psl.ORG_NAME,
+			psl.YWTYPE,
+			psl.CREATERTIME,
+			psl.GRADE,
+			psl.PID
+		</if>
+		psl.*,pst.FORMTYPE
+		FROM
+		p_sample_list psl
+		LEFT JOIN p_sample_table pst ON pst.SAMPLETABLEID=psl.SAMPLETABLEID
+		LEFT JOIN p_sample ps ON ps.SAMPLEID=pst.SAMPLEID
+		WHERE ps.SAMPLEID=#{SAMPLEID} ORDER BY psl.GRADE ,psl.CREATERTIME desc 
+
+	</select>
+
+	<!-- 根据SAMPLEID 获得所有未评分的pid -->
+	<select id="querySampleListBySampleIsNull" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		SELECT
+		psl.PID
+		FROM
+		p_sample_list psl
+		LEFT JOIN p_sample_table pst ON pst.SAMPLETABLEID=psl.SAMPLETABLEID
+		LEFT JOIN p_sample ps ON ps.SAMPLEID=pst.SAMPLEID
+		WHERE ps.SAMPLEID=#{SAMPLEID} AND psl.GRADE is null ORDER BY psl.GRADE ,psl.CREATERTIME desc 
+
+	</select>
+
+	<!-- 根据抽样id计算修改平均分  -->
+	<update id="updateSampleGrade" parameterType="java.util.HashMap">
+		UPDATE p_sample ps set ps.SAMPLE_GRADE=(SELECT format(avg(psl.grade),2) from
+		p_sample_list psl LEFT JOIN p_sample_table pst ON
+		pst.SAMPLETABLEID=psl.SAMPLETABLEID WHERE pst.SAMPLEID=#{SAMPLEID})
+		where ps.SAMPLEID=#{SAMPLEID}
+	</update>
+
+	<!-- 计算所有抽样得平均分 -废弃★★★★★★★★★★★-->
+	<update id="updateSampleGradeAll" parameterType="java.util.HashMap">
+		UPDATE p_sample ps set ps.SAMPLE_GRADE=(SELECT format(avg(psl.grade),2) from
+		p_sample_list psl LEFT JOIN p_sample_table pst ON
+		pst.SAMPLETABLEID=psl.SAMPLETABLEID WHERE pst.SAMPLEID=ps.SAMPLEID)
+	</update>
+
+	<!-- 查询出SampleListId评分 -->
+	<select id="querySampleListIdByPidORSample" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		SELECT
+		psl.SAMPLELISTID SAMPLELISTID,psl.GRADE ,psl.EXT3
+		FROM
+		p_sample_list psl
+		LEFT JOIN p_sample_table pst ON pst.SAMPLETABLEID=psl.SAMPLETABLEID
+		LEFT JOIN p_sample ps ON ps.SAMPLEID=pst.SAMPLEID
+		WHERE ps.SAMPLEID=#{SAMPLEID} AND psl.PID=#{PID}
+	</select>
+
+	<!-- 评分  -->
+	<update id="updateSamoleListGradeBySampleListId" parameterType="java.util.HashMap">
+
+		UPDATE p_sample_list ppp SET PPP.GRADE=#{GRADE},ppp.ext3=#{EXT3} where
+		ppp.SAMPLELISTID=#{SAMPLELISTID}
+	</update>
+
+
+
+	<!-- 删除抽样记录 -->
+	<update id="updateSampleStatis" parameterType="java.util.HashMap">
+		UPDATE p_sample SET STATIS=1 WHERE SAMPLEID=#{SAMPLEID}
+	</update>
+
+	<!-- 获得区县 -->
+	<select id="queryOrgList" parameterType="java.util.HashMap"
+		resultType="java.util.Map"> 
+		select  id,org_name from sys_org where ext1='MY' AND ORG_TYPE=3 
+	</select>
+
+
+	<!-- 获得工单-废弃 -->
+	<select id="queryFlowList" parameterType="java.util.HashMap"
+		resultType="java.util.Map"> 
+		select  * from  p_table  
+	</select>
+	
+	<!-- 获得抽样列表 头部信息-->
+	<select id="querySampleTable" parameterType="java.util.HashMap"
+		resultType="java.util.Map"> 
+
+	select ps.CREATER CREATER,ifnull(so.ORG_NAME,'全县') ORG_NAME,ps.SAMPLE_SCOPE_DATE,PS.WORK_SUM,ps.SAMPLE_CONUTSUM,pst.FORMTYPE,pst.FORMSUM,pst.SAMPLESUM
+	
+,(select format(avg(psl.GRADE),2) from p_sample_list psl where psl.SAMPLETABLEID=pst.SAMPLETABLEID   ) AVGGRADE,ps.SAMPLE_GRADE
+ from p_sample_table pst LEFT JOIN p_sample ps ON ps.sampleid= pst.SAMPLEID  LEFT JOIN sys_org so ON ps.SAMPLE_SCOPE=so.ID WHERE ps.SAMPLEID=#{SAMPLEID}
+	</select>
+</mapper>

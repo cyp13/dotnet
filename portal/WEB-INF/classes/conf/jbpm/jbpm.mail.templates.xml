@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<jbpm-configuration>
+	<process-engine-context>
+		<mail-template name="task-notification">
+			<to users="${task.assignee}" />
+			<subject>${task.executionId}</subject>
+			<text>
+				<![CDATA[
+				${task.assignee}，你好！有新的任务需要你处理。
+				Sent by jbpm
+				]]>
+			</text>
+		</mail-template>
+
+		<mail-template name="task-reminder">
+			<to users="${task.assignee}" />
+			<subject>${task.executionId}</subject>
+			<text>
+				<![CDATA[
+				${task.assignee}，你好！有新的任务需要你处理。
+				Sent by jbpm
+				]]>
+			</text>
+		</mail-template>
+		
+		<mail-template name="rectify-template">
+			<to addresses="zhangyouwei@scihi.cn" />
+			<subject>新任务</subject>
+			<text>你好，有新的任务需要你处理。</text>
+	    </mail-template>
+	</process-engine-context>
+</jbpm-configuration>

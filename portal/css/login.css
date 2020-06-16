@@ -1,0 +1,100 @@
+body {
+	font-size: 13px;
+	font-family: "微软雅黑" !important;
+	text-align: center;
+	background: #4974A4 url("../images/icon_bg3.jpg") no-repeat fixed center;
+	background-size: 100% 100%;
+}
+
+#main {
+	position: absolute;
+	top: 50%;
+	left: 50%;
+	margin-top: -200px;
+	margin-left: -230px;
+	/* transform: translate(-50%,-50%); */
+}
+
+.footer {
+	color: #eee;
+	line-height: 20px;
+}
+
+.content {
+	margin-top: 10px;
+	margin-bottom: 10px;
+}
+
+.right {
+	width: 380px;
+	text-align: left;
+	background-color: #fff;
+	padding: 40px 40px 20px 40px;
+	-webkit-box-shadow: 3px 3px 3px;
+	-moz-box-shadow: 3px 3px 3px;
+	box-shadow: 3px 3px 3px;
+	/* background-color: rgba(0,0,0,.075); */
+}
+
+#btn-submit {
+	width: 358px;
+	height: 40px;
+	background: #4974A4;
+	color: #fff;
+	border: 0px solid #4974A4;
+	cursor: pointer;
+	border-radius: 1px;
+}
+
+#btn-submit:hover {
+	opacity: 0.9;
+}
+
+fieldset {
+	border: none;
+}
+
+fieldset input {
+	width: calc(100% - 2px);
+	height: calc(100% - 2px);
+	outline: none;
+	border: none;
+}
+
+fieldset #j_checkcode {
+	width: calc(100% - 111px);
+}
+
+fieldset input[type=checkbox] {
+	width: 15px;
+	height: 15px;
+	vertical-align: middle;
+}
+
+.inputWrap {
+	height: 40px;
+	border: 1px solid #ccc;
+	padding-left: 40px;
+	background-position: 10px;
+	background-repeat: no-repeat;
+}
+
+.j_username {
+	background-image: url("../images/icon_yhm.png");
+}
+
+.j_password {
+	border-top: none;
+	background-image: url("../images/icon_mm.png");
+}
+
+.j_checkcode {
+	border-top: none;
+	background-image: url("../images/icon_yzm.png");
+}
+
+#yzm-img {
+	float: right;
+	margin-top: 5px;
+	margin-right: 5px
+}

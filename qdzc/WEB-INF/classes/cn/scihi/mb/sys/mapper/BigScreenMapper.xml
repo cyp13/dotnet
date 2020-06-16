@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.BigScreenMapper">
+	<select id="queryZCScore" parameterType="java.util.Map" resultType="java.util.Map">
+	select user_alias AgentName, count(ext1) TotalCont, ifnull(sum(ext1),0) TotalScores, ifnull(round(sum(ext1)/count(ext1), 2),0) AvgScore from(
+	select DISTINCT user.USER_NAME, user.USER_ALIAS, jht.EXECUTION_, jhp.STATE_, gongdan.id, gongdan.ext1
+	from jbpm4_hist_task jht
+	left join jbpm4_hist_actinst jha on jha.HTASK_=jht.DBID_
+	left join jbpm4_hist_procinst jhp on jha.HPROCI_=jhp.DBID_
+	left join sys_user user on jht.ASSIGNEE_=user.USER_NAME
+	left join sys_user_role ur on ur.USER_ID=user.ID
+	left join sys_role role on role.ID=ur.ROLE_ID
+	left join t_task ttask on ttask.PID = jhp.id_
+	left join t_work_agency gongdan on gongdan.ID=ttask.FORM_ID
+	where user.SYS_ID=#{sysId}
+	and jht.END_>=date_format(now(), '%Y-%m-%d')
+	and jhp.STATE_='ended'
+	and gongdan.ext1 is not null
+	and role.ROLE_TYPE='支撑'
+	)tmp group by user_name, user_alias
+	</select>
+	<select id="queryZCState" parameterType="java.util.Map" resultType="java.util.Map">
+	select user_alias realname, state Status from( 
+	SELECT user.USER_NAME, user.USER_ALIAS, user.ext1, case when user.EXT1 is null or user.EXT1=0 then '不接单' else '接单' end state, role.ROLE_NAME FROM sys_user user
+	left join sys_user_role sur on sur.USER_ID=user.ID
+	left join sys_role role on role.ID=sur.ROLE_ID
+	where user.SYS_ID=#{sysId} and role.ROLE_TYPE='支撑'
+	)tmp group by user_name, user_alias, state
+	order by state desc;
+	</select>
+	<select id="queryZCFirstAccept" parameterType="java.util.Map" resultType="java.util.Map">
+	select user_name, user_alias RealName, count1 ReceiverCount, sum1/1000 FirstResponseTotalTime, (sum1/1000)/count1 Average from(
+	select user.USER_NAME, user.USER_ALIAS, count(jha.HPROCI_) count1, sum(jha.DURATION_) sum1
+	from jbpm4_hist_task jht
+	left join jbpm4_hist_actinst jha on jht.DBID_=jha.HTASK_
+	left join sys_user user on jht.ASSIGNEE_=user.USER_NAME
+	left join sys_user_role ur on ur.USER_ID=user.ID
+	left join sys_role role on role.ID=ur.ROLE_ID
+	where user.SYS_ID=#{sysId}
+	and jha.START_>=date_format(now(), '%Y-%m-%d')
+	and role.ROLE_TYPE='支撑'
+	and jha.DURATION_>0
+	and jha.HTASK_=(select min(HTASK_) from jbpm4_hist_actinst jha1 where jha1.HPROCI_=jha.HPROCI_ and jha1.ACTIVITY_NAME_=jha.ACTIVITY_NAME_)
+	group by user.USER_NAME, user.USER_ALIAS
+	) tmp
+	</select>
+	<select id="queryActiveProc" parameterType="java.util.Map" resultType="java.lang.Integer">
+	select count(1) from jbpm4_hist_actinst jha
+	left join jbpm4_hist_procinst jhp on jha.HPROCI_=jhp.DBID_
+	left join jbpm4_hist_var jhv on jhp.DBID_=jhv.HPROCI_ and jhv.VARNAME_='sysId_'
+	where jhv.VALUE_=#{sysId}
+	and jha.ACTIVITY_NAME_ like '%支撑%' and jha.START_>=date_format(now(), '%Y-%m-%d') and jha.END_ is null;
+	</select>
+	<select id="queryZCAcceptScale" parameterType="java.util.Map" resultType="java.util.Map">
+	select tmp.*, `HandledCount`/`PublishedCount`*100 `Percent` from(
+	select DATE_FORMAT(jhp.START_,'%H') `Hour`, count(1) `PublishedCount`, count(jha.END_) `HandledCount`
+	from jbpm4_hist_procinst jhp
+	left join jbpm4_hist_var jhv on jhp.DBID_=jhv.HPROCI_ and jhv.VARNAME_='sysId_'
+	left join jbpm4_hist_actinst jha on jhp.DBID_=jha.HPROCI_ and jha.ACTIVITY_NAME_ like '%支撑%'
+	where jhv.VALUE_=#{sysId}
+	and jhp.START_>=date_format(now(), '%Y-%m-%d')
+	and jha.HTASK_=(
+	select min(HTASK_) from jbpm4_hist_actinst jha1 where jha1.HPROCI_=jha.HPROCI_ and jha1.ACTIVITY_NAME_=jha.ACTIVITY_NAME_
+	)group by `Hour`
+	) tmp
+	</select>
+	<select id="queryCountByCounty" parameterType="java.util.Map" resultType="java.util.Map">
+	SELECT count(1) Count
+	FROM jbpm4_hist_procinst jhp
+	left join jbpm4_hist_var var on jhp.DBID_=var.HPROCI_ and var.VARNAME_='owner_'
+	LEFT JOIN sys_user USER ON var.VALUE_ = USER.USER_NAME
+	LEFT JOIN sys_org channel ON USER.ORG_ID = channel.ID AND channel.ORG_TYPE = '5'
+	LEFT JOIN sys_org office ON channel.PARENT_ID = office.ID
+	LEFT JOIN sys_org county ON office.PARENT_ID = county.ID
+	WHERE USER.SYS_ID=#{sysId} and jhp.START_>=date_format(now(), '%Y-%m-%d') AND county.id IS NOT NULL
+	INTO @SumCount;
+	
+	select county.id DistrictID, county.ORG_NAME Name, ifnull(tmp.Count,0) Count, ifnull(Count/@SumCount,0)*100 Percent
+	from sys_org county
+	left join (
+	SELECT county.id DistrictID, count(1) Count
+	FROM jbpm4_hist_procinst jhp
+	left join jbpm4_hist_var var on jhp.DBID_=var.HPROCI_ and var.VARNAME_='owner_'
+	LEFT JOIN sys_user USER ON var.VALUE_ = USER.USER_NAME
+	LEFT JOIN sys_org channel ON USER.ORG_ID = channel.ID AND channel.ORG_TYPE = '5'
+	LEFT JOIN sys_org office ON channel.PARENT_ID = office.ID
+	LEFT JOIN sys_org county ON office.PARENT_ID = county.ID
+	WHERE USER.SYS_ID=#{sysId} and jhp.START_>=date_format(now(), '%Y-%m-%d') AND county.id IS NOT NULL 
+	GROUP BY DistrictID
+	)tmp on county.id=tmp.DistrictID
+	where county.SYS_ID=#{sysId} and ORG_TYPE='3'
+	order by DistrictID;
+	</select>
+	<select id="queryCountByPtype" parameterType="java.util.Map" resultType="java.util.Map">
+	select count(1) Count
+	from sys_dict dict
+	left join t_work_agency twa on twa.SERVICE_TYPE=dict.DICT_VALUE
+	left join sys_user user on twa.CREATER=user.USER_NAME
+	left join sys_org channel on user.ORG_ID=channel.ID and channel.ORG_TYPE='5'
+	left join sys_org office on channel.PARENT_ID=office.ID
+	left join sys_org county on office.PARENT_ID=county.ID
+	where dict.SYS_ID='026b17ad-a099-45c1-beb5-316d300c7f23' and dict.PARENT_ID='mydbgd' and twa.CREATED>=date_format(now(), '%Y-%m-%d') and county.id is not null
+	into @SumCount;
+	select dict.ID TypeID, dict.DICT_NAME Name, count(1) Count, ifnull(count(1)/@SumCount,0)*100 Percent
+	from sys_dict dict
+	left join t_work_agency twa on twa.SERVICE_TYPE=dict.DICT_VALUE
+	left join sys_user user on twa.CREATER=user.USER_NAME
+	left join sys_org channel on user.ORG_ID=channel.ID and channel.ORG_TYPE='5'
+	left join sys_org office on channel.PARENT_ID=office.ID
+	left join sys_org county on office.PARENT_ID=county.ID
+	where dict.SYS_ID='026b17ad-a099-45c1-beb5-316d300c7f23' and dict.PARENT_ID='mydbgd' and twa.CREATED>=date_format(now(), '%Y-%m-%d') and county.id is not null
+	group by TypeID, Name
+	order by dict.SORT_NO;
+	</select>
+</mapper>

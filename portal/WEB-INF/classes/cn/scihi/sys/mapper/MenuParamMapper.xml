@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.MenuParamMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.MenuParam">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="MENU_ID" jdbcType="VARCHAR" property="menuId" />
+		<result column="PARAM_ID" jdbcType="VARCHAR" property="paramId" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+	</resultMap>
+	<select id="queryMenuParam" parameterType="cn.scihi.sys.pojo.MenuParam"
+		resultType="java.util.LinkedHashMap">
+		select
+		T.SYS_ID AS "sysId",
+		T.MENU_ID AS "menuId",
+		T.PARAM_ID as "paramId",
+		T1.ENAME as "ename",
+		T1.CNAME as "cname",
+		T1.DVALUE as "dvalue",
+		T1.PVALUE as "pvalue",
+		T1.VALUE_TYPE as "valueType",
+		T1.VALID_FLAG as "validFlag",
+		T1.CONTROL_TYPE as "controlType",
+		T1.DS_ID as "dsId",
+		T1.CREATED as "created",
+		T1.REMARK as "remark",
+		T2.DRIVER_CLASS as "driverClass",
+		T2.URL as "url",
+		T2.USER_NAME as "userName",
+		T2.PASSWORD as "password"
+		from
+		sys_menu_param T
+		left join sys_param T1 on T.PARAM_ID = T1.ID and T1.SYS_ID = T.SYS_ID
+		left join sys_ds T2 on T1.DS_ID = T2.ID and T2.ROW_VALID = '1' and T2.SYS_ID = T.SYS_ID
+		where 1=1 
+		and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<![CDATA[ and T1.ROW_VALID <> '9' ]]>
+		<if test="null != menuId and '' != menuId">
+			and T.MENU_ID = #{menuId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != paramId and '' != paramId">
+			and T.PARAM_ID = #{paramId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		order by T1.SORT_NO, T1.CREATED desc
+	</select>
+	<delete id="deleteByMenuId">
+		delete from
+		sys_menu_param
+		where MENU_ID = #{0,jdbcType=VARCHAR}
+		and SYS_ID = #{1,jdbcType=VARCHAR}
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.MenuParam">
+		insert into sys_menu_param (
+		ID,
+		SYS_ID,
+		MENU_ID,
+		PARAM_ID, 
+		MODIFIER,
+		MODIFIED,
+		ROW_VERSION)
+		values
+		(#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{menuId,jdbcType=VARCHAR},
+		#{paramId,jdbcType=VARCHAR},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{rowVersion,jdbcType=DECIMAL})
+	</insert>
+</mapper>

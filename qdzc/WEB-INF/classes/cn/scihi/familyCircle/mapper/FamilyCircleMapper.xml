@@ -1,0 +1,424 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.IFamilyCircleMapper">
+
+<select id="queryFCBasicIdByPhone" resultType="int">
+	select id from sys_family_circle_basic where phone=#{phone} and status = 0
+</select>
+
+<insert id="addFCBasicType"  parameterType="java.util.Map">
+	insert into sys_family_circle_basic_type(
+		basic_id
+		,type_id
+		,isTransact
+		,CREATER
+		,CREATED
+	)value(
+		#{basic_id}
+		,#{type_id}
+		,#{isTransact}
+		,#{CREATER}
+		,#{CREATED}
+	)
+</insert>
+<select id="queryFCBySysIdOrPhone" resultType="java.util.Map">
+	select id,SYS_ID,phone from sys_family_circle_basic where SYS_ID=#{sysId} and phone=#{phone} and status = 0
+</select>
+<!-- 号码库增加 -->
+<insert id="addFamilyCirclePhone" parameterType="java.util.Map"  keyProperty="id" useGeneratedKeys="true" >
+	insert into sys_family_circle_basic(
+		id
+		,SYS_ID
+		,phone
+		,fc_code
+		,key_person
+		,transact_num
+		,CREATER
+		,CREATED
+		,MODIFIER
+		,MODIFIED
+	)values(
+		#{id}
+		,#{sysId}
+		,#{phone}
+		,#{fc_code}
+		,#{key_person}
+		,#{transact_num}
+		,#{CREATER}
+		,#{CREATED}
+		,#{MODIFIER}
+		,#{MODIFIED}
+	)
+</insert>
+
+<select id="queryList" parameterType="java.util.Map" resultType="java.util.Map">
+	
+	select
+		id
+		,SYS_ID
+		,phone
+		,fc_code
+		,key_person,status
+		,query_num
+		,first_query_time
+		,lately_query_time
+		,CREATER
+		,CREATED
+		,MODIFIER
+		,MODIFIED 
+	from sys_family_circle_basic
+	where status=0
+		and SYS_ID=#{sysId}
+	 <if test="_parameter.containsKey('id')">
+         AND id = #{id}
+     </if>
+	 <if test="_parameter.containsKey('startTime') and startTime != null and startTime != ''">
+         AND MODIFIED &gt;= #{startTime}
+     </if>
+     <if test="_parameter.containsKey('endTime') and endTime != null and endTime != ''">
+         AND MODIFIED &lt;= #{endTime}
+     </if>
+     <if test="_parameter.containsKey('phone') and phone != null and phone != ''">
+         AND phone = #{phone}
+     </if>
+</select>
+
+<select id="queryList1" parameterType="java.util.List" resultType="java.util.Map">
+	select
+		id
+		,SYS_ID
+		,phone
+		,fc_code
+		,key_person,status
+		,query_num
+		,first_query_time
+		,lately_query_time
+		,CREATER
+		,CREATED
+		,MODIFIER
+		,MODIFIED 
+	from sys_family_circle_basic force index(IX_Fcb_SysId,IX_Fcb_Status,IX_Fcb_Phone)
+	where status=0
+	<foreach collection="param" item="param" index="index">
+		and SYS_ID=#{param.sysId}
+		<if test="param.containsKey('param.id')">
+        	 AND id = #{param.id}
+	     </if>
+		 <if test=" param.startTime != null and param.startTime != ''">
+	         AND MODIFIED &gt;= #{param.startTime}
+	     </if>
+	     <if test="param.endTime != null and param.endTime != ''">
+	         AND MODIFIED &lt;= #{param.endTime}
+	     </if>
+	     <if test="param.phone != null and param.phone != ''">
+	         AND phone = #{param.phone}
+	     </if>
+     	limit ${param.start},${param.length}
+    </foreach>
+        	
+</select>
+
+<select id="queryListNum" parameterType="java.util.List" resultType="int">
+	select count(1) from sys_family_circle_basic FORCE INDEX ( IX_Fcb_Status, IX_Fcb_SysId ) where status=0
+	<foreach collection="param" item="param" index="index">
+		and SYS_ID=#{param.sysId}
+		 <if test=" param.startTime != null and param.startTime != ''">
+	         AND MODIFIED &gt;= #{param.startTime}
+	     </if>
+	     <if test="param.endTime != null and param.endTime != ''">
+	         AND MODIFIED &lt;= #{param.endTime}
+	     </if>
+	     <if test="param.phone != null and param.phone != ''">
+	         AND phone = #{param.phone}
+	     </if>
+    </foreach>
+</select>
+
+<update id="updateNumberLib" parameterType="java.util.Map">
+	update sys_family_circle_basic 
+	set
+		phone = #{phone}
+		,fc_code = #{fc_code}
+		,key_person=#{key_person}
+		,MODIFIER=#{MODIFIER}
+		,MODIFIED=#{MODIFIED}
+	where 
+		id=#{id}
+</update>
+
+<select id="queryPhoneLib" resultType="java.util.Map">
+	select 
+		id
+		,SYS_ID
+		,phone
+		,fc_code
+		,key_person
+		,query_num
+		,member_num
+		,first_query_time
+		,lately_query_time
+	from sys_family_circle_basic
+	where phone=#{phone} and status=0
+</select>
+
+<update id="addQueryNum">
+	update sys_family_circle_basic set query_num=#{num} where id=#{id}
+</update>
+
+<select id="queryMember" resultType="java.util.Map">
+	select 
+		id
+		,SYS_ID
+		,phone
+		,key_person 
+		,CREATER
+		,CREATED
+		,MODIFIER
+		,MODIFIED
+	from sys_family_circle_basic 
+	where 
+		SYS_ID=#{SYS_ID} 
+		and fc_code=#{fc_code} 
+		and status=0
+</select>
+
+<select id="queryTypeInfo" resultType="java.util.Map">
+	select 
+		fcb.type_id
+		,fct.name as name
+		,fcb.isTransact as  isTransact
+	from sys_family_circle_basic_type fcb 
+		left join sys_family_circle_type fct 
+		on fcb.type_id=fct.id
+	where fcb.basic_id=#{id}
+	and fct.status=0
+</select>
+
+<insert id="addSearchInfo" parameterType="java.util.Map" >
+	insert into sys_family_circle_search (
+		basic_id
+		<if test="COUNTY != null and COUNTY != ''">
+		,COUNTY_ID
+		,COUNTY
+		</if>
+		<if test="BRANCH_OFFICE != null and BRANCH_OFFICE != ''">
+		,BRANCH_OFFICE_ID
+		,BRANCH_OFFICE
+		</if>
+		<if test="CHANNEL_NAME != null and CHANNEL_NAME != ''">
+		,CHANNEL_NAME_ID
+		,CHANNEL_NAME
+		</if>
+		<if test="CHANNEL != null and CHANNEL != ''">
+		,CHANNEL
+		</if>
+		<if test="CHANNEL_PHONE != null and CHANNEL_PHONE != ''">
+		,CHANNEL_PHONE
+		</if>
+		,quert_user_id
+		,query_phone
+		<if test="CREATER != null and CREATER != ''">
+		,CREATER
+		</if>
+		<if test="CREATED != null and CREATED != ''">
+		,CREATED
+		</if>)
+	values(
+		#{basic_id}
+		<if test="COUNTY != null and COUNTY != ''">
+			,#{COUNTY_ID}
+			,#{COUNTY}
+		</if>
+		<if test="BRANCH_OFFICE != null and BRANCH_OFFICE != ''">
+			,#{BRANCH_OFFICE_ID}
+			,#{BRANCH_OFFICE}
+		</if>
+		<if test="CHANNEL_NAME != null and CHANNEL_NAME != ''">
+			,#{CHANNEL_NAME_ID}
+			,#{CHANNEL_NAME}
+		</if>
+		<if test="CHANNEL != null and CHANNEL != ''">
+			,#{CHANNEL}
+		</if>
+		<if test="CHANNEL_PHONE != null and CHANNEL_PHONE != ''">
+			,#{CHANNEL_PHONE}
+		</if>
+		,#{quert_user_id}
+		,#{phone}
+		<if test="CREATER != null and CREATER != ''">
+		 ,#{CREATER}
+		</if>
+		<if test="CREATED != null and CREATED != ''">
+		 ,#{CREATED}
+		</if>
+		)
+</insert>
+
+<update id="updateSearchTime">
+	update sys_family_circle_basic
+	set 
+		lately_query_time = #{lately_query_time}
+		<if test="first_query_time != null and first_query_time != ''">
+			 ,first_query_time = #{first_query_time}
+		</if>
+	where 
+		id=#{id}
+</update>
+
+<select id="getFCTypeList" resultType="java.util.Map">
+	select id,SYS_ID,name from sys_family_circle_type where SYS_ID=#{sysId} and status=0
+</select>
+	
+<select id="queryFCInfoByBasicId" resultType="java.util.Map">
+	select 
+	id,SYS_ID,phone,fc_code,key_person,member_num
+	from sys_family_circle_basic
+	where id=#{id} and status=0
+</select>
+<select id="qeuryFCTypeByBasic" resultType="java.util.Map">
+	select 
+		fcbt.id as id
+		,fcbt.basic_id as basic_id
+		,fcbt.type_id as type_id
+		,fcbt.isTransact as isTransact
+		,fct.name as name
+	from sys_family_circle_type fct
+	join sys_family_circle_basic_type fcbt
+	on fcbt.type_id = fct.id
+	where fcbt.basic_id=#{id}
+	and fcbt.status=0
+	
+</select>
+
+<update id="updateFCBasicType">
+	update sys_family_circle_basic_type
+	set isTransact=#{isTransact}
+		,MODIFIER=#{MODIFIER}
+		,MODIFIED=#{MODIFIED}
+	where id=#{id}
+</update>
+
+<delete id="deleteFCBasicType">
+	delete from sys_family_circle_basic_type where
+	basic_id in
+	<foreach item="id" collection="array"  open="(" separator="," close=")">
+		#{id}
+	</foreach>
+</delete>
+
+<delete id="deleteFCByIds">
+	delete from sys_family_circle_basic 
+	where id in
+	<foreach item="id" collection="array" open="(" separator="," close=")">
+		#{id}
+	</foreach>
+</delete>
+
+<select id="searchChannelInfo" resultType="java.util.Map">
+SELECT
+	fcs.id,
+	fcs.basic_id,
+	fcs.COUNTY,
+	fcs.BRANCH_OFFICE,
+	fcs.CHANNEL_NAME,
+	fcs.CHANNEL,
+	fcs.CHANNEL_PHONE,
+	IFNULL( suser.USER_ALIAS, fcs.CREATER ) AS CREATER,
+	fcs.CREATED 
+FROM
+	sys_family_circle_search fcs
+	LEFT JOIN sys_user suser ON fcs.quert_user_id = suser.ID
+WHERE
+	basic_id= #{id}
+</select>
+
+<select id="querySearchNumByPhone" resultType="int">
+	select count(1) from sys_family_circle_search where basic_id=#{id}
+</select>
+
+<select id="queryTypeList" resultType="java.util.Map">
+	select 
+		id,
+		name
+	from sys_family_circle_type
+	where 
+	status=0
+	<if test="_parameter.containsKey('SYS_ID')" >
+		and SYS_ID=#{SYS_ID}
+	</if>
+	<if test="_parameter.containsKey('sysId')">
+		and SYS_ID=#{sysId}
+	</if>
+</select>
+
+<select id="getTypeInfoByBasicIdOrTypeId" resultType="java.util.Map">
+	select 
+		id
+		,type_id
+		,basic_id
+		,isTransact
+	from sys_family_circle_basic_type  
+	where basic_id=#{basic_id}
+	and type_id=#{type_id}
+	and status=0
+</select>
+
+<select id="queryFCTypeByName" parameterType="java.util.List" resultType="cn.scihi.mb.work.pojo.FamilyCircleType">
+	select * from sys_family_circle_type t 
+		where t.`status` = 0 
+		<if test="param != null and '' != param">
+			and t.`name` in
+			<foreach collection="param" item="param" index="index"
+                 open="(" separator=","  close=")">
+            	#{param}
+        	</foreach>
+       	</if>
+</select>
+
+<!-- myself:批量插入 -->
+<insert id="addBatchFamilyCirclePhone" parameterType="java.util.List">
+     insert into sys_family_circle_basic(
+     	id
+		,SYS_ID
+		,phone
+		,fc_code
+		,key_person
+		,CREATER
+		,CREATED
+		,MODIFIER
+		,MODIFIED
+					)values
+	 <foreach collection="param" item="item" index="index" separator=",">
+         (
+         #{item.id}
+		,#{item.sysId}
+		,#{item.phone}
+		,#{item.fc_code}
+		,#{item.key_person}
+		,#{item.CREATER}
+		,#{item.CREATED}
+		,#{item.MODIFIER}
+		,#{item.MODIFIED}
+		)
+     </foreach>
+ </insert>
+ 
+ <insert id="addBatchFCBasicType" parameterType="java.util.List">
+     insert into sys_family_circle_basic_type(
+		basic_id
+		,type_id
+		,isTransact
+		,CREATER
+		,CREATED
+			)values
+	 <foreach collection="param" item="item" index="index" separator=",">
+         (
+        	#{item.basic_id}
+		,#{item.type_id}
+		,#{item.isTransact}
+		,#{item.CREATER}
+		,#{item.CREATED}
+		)
+     </foreach>
+ </insert>
+</mapper>

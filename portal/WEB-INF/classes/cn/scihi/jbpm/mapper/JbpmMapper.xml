@@ -1,0 +1,394 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.jbpm.mapper.JbpmMapper">
+
+	<delete id="deleteTaskById">
+	delete from jbpm4_task where dbid_=#{id}
+	</delete>
+
+	<select id="queryProcessInstance" parameterType="java.util.HashMap" resultType="java.util.Map">
+		select
+			B.ID_ as "pId",
+			fts.VALUE_ as "formTypeSmall",
+			B.PROCDEFID_ as "pdId",
+			B.START_ as "create",
+			task.CREATE_ as 'taskCreate',
+			B.END_ as "end",
+			B.DURATION_ as "duration",
+			B.ENDACTIVITY_ as "endActivity",
+			B.STATE_ as "state",
+			D.VALUE_ as "owner",
+			<!-- E.VALUE_ as "form", -->
+			F.VALUE_ as "sysId",
+			G.VALUE_ as "formCode",
+			U.GIVENNAME_ as "userAlias",
+			TASK.ACTIVITY_NAME_ as "activityName",
+			TASK.ASSIGNEE_ as "assignee",
+			U1.GIVENNAME_ as "assigneeDesc",
+			TASK.DBID_ as "taskId",
+			TASK.STATE_ as "taskState",
+			TASK.CREATE_ AS "createTime",
+			TASK.PRIORITY_ AS "priority",
+			H.VALUE_ as "formTitle"
+			
+		from 
+		<if test="null != userName">
+		(SELECT
+			  B.ID_  ,
+	          B.PROCDEFID_  ,
+		      B.START_  ,
+		      B.END_  ,
+			  B.DURATION_  ,
+			  B.ENDACTIVITY_  ,
+			  B.STATE_  ,
+		      b.DBID_
+		FROM
+			jbpm4_hist_procinst B
+			, (
+			     select distinct C.HPROCI_ from jbpm4_hist_actinst C,
+			     jbpm4_hist_task l
+				 WHERE
+					C.HTASK_ = l.DBID_
+					AND l.STATE_ = 'completed'
+					AND l.ASSIGNEE_ = #{userName}
+			     
+				<!-- 以下用于查询加签的已办 暂未使用 --> 
+				<!-- union 
+				SELECT D.HPROCI_ FROM `jbpm4_hist_actinst` D 
+				left join jbpm4_hist_task A on D.HTASK_ = A.DBID_
+						left join jbpm4_hist_detail C on A.DBID_ = C.HTASK_
+				WHERE C.MESSAGE_  LIKE  concat('%-',#{userName} ,'-%') -->
+				
+				) f
+		WHERE
+			B.DBID_ = f.HPROCI_ 
+			<!-- app端根据token增加优化 -->
+			<if test=" null != keywords and '' != keywords and null != token">
+			   and (
+				 <foreach collection="keywords" item="key" separator="or" index="index">
+				   B.ID_ like '%${key}%' 
+				 </foreach>
+			   )   
+			</if>
+			) B
+		</if>
+	   <!-- 没有用户名的情况下，判断是否需要预先过滤 formCode_和owner_-->
+		<if test="null == userName">
+		  <if test="null == preSearch">
+		  jbpm4_hist_procinst B
+		  </if>
+		  <if test="null != preSearch">
+		  (SELECT
+			a.ID_  ,
+			a.PROCDEFID_  ,
+			a.START_ ,
+			a.END_,
+			a.DURATION_,
+			a.ENDACTIVITY_,
+			a.STATE_,
+		    a.DBID_
+		 from jbpm4_hist_procinst a, 
+		 (SELECT v.HPROCI_ from jbpm4_hist_var v where 
+		  <if test='"formCode_" == queryType'>
+			 v.VARNAME_='formCode_'  
+			 <if test='null != keywords'>
+			  and
+			 <foreach collection="keywords" item="key" separator="or" index="index">
+			    (v.VALUE_ like '%${key}%')
+			 </foreach>
+			 </if>
+		  </if>
+		   <if test='"owner_" == queryType'>
+			 v.VARNAME_='owner_'  
+			 <if test='null != keywords'>
+			  and
+			 <foreach collection="keywords" item="key" separator="or" index="index">
+			    (v.VALUE_ like '%${key}%')
+			 </foreach>
+			 </if>
+		  </if>
+		 ) aa
+		where a.DBID_  = aa.HPROCI_  
+		) B
+		</if>  
+      </if>
+		left join jbpm4_hist_var D on B.DBID_ = D.HPROCI_ AND D.VARNAME_ = 'owner_'
+		<!-- left join jbpm4_hist_var E on B.DBID_ = E.HPROCI_ AND E.VARNAME_ = 'form_' -->
+		left join jbpm4_hist_var F on B.DBID_ = F.HPROCI_ AND F.VARNAME_ = 'sysId_'
+		left join jbpm4_hist_var G on B.DBID_ = G.HPROCI_ AND G.VARNAME_ = 'formCode_'
+		left join jbpm4_hist_var fts on B.DBID_ = fts.HPROCI_ AND fts.VARNAME_ = 'form_type_small_'<!-- 二级类型 -->
+		left join jbpm4_hist_var H on B.DBID_ = H.HPROCI_ AND H.VARNAME_ = 'formTitle_'
+		left join jbpm4_id_user U on D.VALUE_ = U.ID_ <!-- ID_需要手动加索引 -->
+		<!-- left join jbpm4_hist_var E on B.DBID_ = E.HPROCI_ AND E.VARNAME_ = 'form_' -->
+		left join jbpm4_task TASK on B.DBID_ = TASK.PROCINST_ AND TASK.SUPERTASK_ is null <!-- PROCINST_需要加索引 -->
+		left join jbpm4_id_user U1 on TASK.ASSIGNEE_ = U1.ID_ <!-- ID_需要手动加索引 -->
+		<where>
+		<if test="sysId != null and sysId.length()>0">
+			 (F.VALUE_ = #{sysId} or F.value_ is null)
+		</if>
+		<choose>
+			<when test="null != PROCDEFID_ and 'not'.toString() eq PROCDEFID_.toString()"><!-- 如果传了标记not，则查询所有未标记的工单 -->
+				and substring_index(B.PROCDEFID_, '-', 1) not in (
+					select aa.PROCDEFID_ from jbpm4_proctype aa where 1=1
+				)
+			</when>
+			<when test="null != PROCDEFID_ and '' != PROCDEFID_"><!-- 如果传了标记，则按照标记查询所有工单 -->
+				and substring_index(B.PROCDEFID_, '-', 1) in (
+					select aa.PROCDEFID_ from jbpm4_proctype aa where aa.PROCTYPE_=#{PROCDEFID_}
+				)
+			</when>
+		</choose>
+		<if test="null != taskState and '' != taskState"><!-- //特殊 -->
+			and (B.STATE_ in
+			<foreach collection="taskState" item="key" separator="," index="index" open="(" close=")">
+				#{key}
+			</foreach>
+			)
+		</if>
+		<if test="null != startTime and '' != startTime and null != endTime and '' != endTime">
+			and B.START_ between #{startTime,jdbcType=TIMESTAMP} and #{endTime,jdbcType=TIMESTAMP}
+		</if>
+		<!-- pc端才会查询这块-->
+		<if test=" null != keywords and '' != keywords and null == preSearch and null == token">
+			and (
+			    <foreach collection="keywords" item="key" separator="or" index="index">
+				   <if test='"userName" == queryType'>
+					  U.GIVENNAME_ like '%${key}%'
+					</if>
+			          <if test='"orderStatus" == queryType'>
+					    TASK.STATE_ like '%${key}%'
+					  </if>
+					  <!-- 用户名不存在的时候需要过滤 效果同preSearch-->
+					  <if test="null != userName">
+						  <if test='"owner_" == queryType'>
+							 D.VALUE_ like '%${key}%'
+						  </if>
+						  <if test='"formCode_" == queryType'>
+					          G.VALUE_ like '%${key}%'
+						  </if>
+					  </if>
+					  <if test='"taskStatus" == queryType'>
+					   TASK.STATE_ like '%${key}%'
+					  </if>
+					  <if test='"detail_value_" == queryType'>
+					   #{key} in (select detail_value.VALUE_ from jbpm4_hist_var detail_value where B.DBID_ = detail_value.HPROCI_ and detail_value.VARNAME_ like 'detail_value_%')
+					  </if>
+					  <!-- 用户名存在的情况需要筛选formCode_和 owner_-->
+					  <if test="null != userName">
+					  </if>
+			   </foreach>
+			)
+		</if>
+		</where> 
+		<choose>
+			<when test="null != orderStr and '' != orderStr">
+				order by ${orderStr}
+			</when>
+			<otherwise>
+				order by B.START_ desc<!-- ,B.STATE_ asc -->
+			</otherwise>
+		</choose>
+	</select>
+
+	<select id="queryHisTask" parameterType="java.lang.String" resultType="java.util.Map">
+		select
+			D.EXECUTION_ as "pId",
+			D.HTASK_ as "taskId",
+			D.ACTIVITY_NAME_ as "activityName",
+			D.START_ as "create",
+			D.END_ as "end",
+			D.DURATION_ as "duration",
+			D.TRANSITION_ as "result",
+			C.MESSAGE_ as "desc",
+			A.ASSIGNEE_ as "assignee",
+			U.GIVENNAME_ as "userAlias",
+			A.PRIORITY_ AS "priority",
+			C.TIME_ AS "time",
+			su.MOBILE_PHONE as mobile_phone
+		from jbpm4_hist_actinst D
+		left join jbpm4_hist_task A on D.HTASK_ = A.DBID_
+		left join jbpm4_hist_detail C on A.DBID_ = C.HTASK_
+		left join jbpm4_id_user U on A.ASSIGNEE_ = U.ID_
+		left join sys_user su on su.USER_NAME=A.ASSIGNEE_
+		where D.EXECUTION_ like '${_parameter}%'	<!-- EXECUTION_需要手动加索引 -->
+		order by D.DBID_ desc
+	</select>
+
+	<select id="queryHisTaskDetail" parameterType="java.util.HashMap" resultType="java.util.Map">
+		select
+			A.HTASK_ as "taskId",
+			A.ACTIVITY_NAME_ as "activityName",
+			A.START_ as "create",
+			A.END_ as "end",
+			A.DURATION_ as "duration",
+			T.OUTCOME_ as "result",
+			T.ASSIGNEE_ as "assignee",
+			T.STATE_ as "state",
+			U.GIVENNAME_ as "userAlias"
+		from jbpm4_hist_actinst A
+		left join jbpm4_hist_task T on A.HTASK_ = T.DBID_
+		left join jbpm4_id_user U on T.ASSIGNEE_ = U.ID_
+		where A.DBID_ = (
+			select max(H.DBID_) from jbpm4_hist_actinst H
+			where H.HPROCI_ = #{HPROCI_} 
+			and H.ACTIVITY_NAME_ = #{activityName}
+		)
+	</select>
+	
+	<select id="queryTask" parameterType="java.util.HashMap" resultType="java.util.Map">
+		select
+			D.DBID_ AS "id"
+			, D.DBID_ AS "taskId"
+			, P.ID_ as "pId"
+			, fts.VALUE_ as "formTypeSmall"
+			, P.PROCDEFID_ as "pdId"
+			, D.EXECUTION_ID_ as "eId"
+			, D.NAME_ AS "name"
+			, D.ACTIVITY_NAME_ AS "activityName"
+			, D.ASSIGNEE_ AS "assignee"
+			, U1.GIVENNAME_ as "assigneeDesc"
+			, D.CREATE_ AS "createTime"
+			, D.STATE_ AS "state"
+			, D.FORM_ AS "formResourceName"
+			, D.DESCR_ AS "descr"
+			, D.PRIORITY_ AS "priority"
+			, E.VALUE_ as "sysId" 
+			, F.VALUE_ as "enterprise_flag" 
+			, G.VALUE_ AS "formCode"
+			, H.VALUE_ AS "owner"
+			, U.GIVENNAME_ as "userAlias"
+			, I.VALUE_ AS "ActivityPath_"
+			, J.VALUE_ AS "formTitle"
+			, CONCAT('{',GROUP_CONCAT(CONCAT('"',detail_title.VALUE_,'":"',detail_value.VALUE_,'"')),'}') AS 'detail_title_value'
+		from (
+			select task.* from jbpm4_task task where task.ASSIGNEE_ = #{userName}
+			union
+			select task.* from jbpm4_task task
+			left join jbpm4_participation jp on task.DBID_ = jp.TASK_
+			where jp.USERID_ = #{userName} and task.ASSIGNEE_ is null
+			<if test="'0' != ext1 and 0 != ext1">
+				union
+				select task.* from jbpm4_task task
+				left join jbpm4_participation jp on task.DBID_=jp.TASK_
+				left join jbpm4_id_group g on g.id_=jp.GROUPID_
+				left join jbpm4_id_membership m on m.group_=g.dbid_
+				left join jbpm4_id_user u on u.DBID_=m.user_
+				left join jbpm4_swimlane swim on swim.EXECUTION_=task.EXECUTION_
+				where u.ID_ = #{userName} 
+				and
+				 (swim.ASSIGNEE_ is null 
+				 or swim.ASSIGNEE_ != #{userName}
+				 ) 
+				 and 
+				(task.ASSIGNEE_ is null
+				 or task.ASSIGNEE_ != #{userName}
+				 )
+			</if>
+		) D
+		left join jbpm4_hist_var E on D.PROCINST_ = E.HPROCI_ AND E.VARNAME_ = 'sysId_'
+		left join jbpm4_hist_var F on D.PROCINST_ = F.HPROCI_ AND F.VARNAME_ = 'enterprise_flag'
+		left join jbpm4_hist_var G on D.PROCINST_ = G.HPROCI_ AND G.VARNAME_ = 'formCode_'
+		left join jbpm4_hist_var H on D.PROCINST_ = H.HPROCI_ AND H.VARNAME_ = 'owner_'
+		left join jbpm4_hist_var I on D.PROCINST_ = I.HPROCI_ AND I.VARNAME_ = 'ActivityPath_'
+		left join jbpm4_hist_var fts on D.PROCINST_ = fts.HPROCI_ AND fts.VARNAME_ = 'form_type_small_'<!-- 二级类型 -->
+		left join jbpm4_id_user U on U.ID_ = H.VALUE_
+		left join jbpm4_id_user U1 on D.ASSIGNEE_ = U1.ID_ <!-- ID_需要手动加索引 -->
+		left join jbpm4_hist_procinst P on P.DBID_ = D.PROCINST_
+		left join jbpm4_hist_var J on D.PROCINST_ = J.HPROCI_ AND J.VARNAME_ = 'formTitle_'
+		left join jbpm4_hist_var detail_title on D.PROCINST_ = detail_title.HPROCI_ and detail_title.VARNAME_ like 'detail_title_%'
+		left join jbpm4_hist_var detail_value on D.PROCINST_ = detail_value.HPROCI_ and detail_value.VARNAME_ = replace(detail_title.VARNAME_, 'detail_title_', 'detail_value_')
+		left join jbpm4_hist_var detail_value1 on D.PROCINST_ = detail_value1.HPROCI_ and detail_value1.VARNAME_ = replace(detail_title.VARNAME_, 'detail_title_', 'detail_value_')
+		where 1 = 1 
+			<if test="sysId != null and sysId.length()>0">
+				and (E.VALUE_ = #{sysId} or e.value_ is null)
+			</if>
+			and F.VALUE_ = #{enterprise_flag}
+			<if test="null != ptype and '' != ptype">
+				and substring_index(P.PROCDEFID_, '-', 1)=#{ptype}
+			</if>
+			<if test="null != node and '' != node">
+				and D.ACTIVITY_NAME_=#{node}
+			</if>
+			<choose>
+				<when test="null != PROCDEFID_ and 'not'.toString() eq PROCDEFID_.toString()"><!-- 如果传了标记not，则查询所有未标记的工单 -->
+					and substring_index(P.PROCDEFID_, '-', 1) not in (
+						select aa.PROCDEFID_ from jbpm4_proctype aa where 1=1
+					)
+				</when>
+				<when test="null != PROCDEFID_ and '' != PROCDEFID_"><!-- 如果传了标记，则按照标记查询所有工单 -->
+					and substring_index(P.PROCDEFID_, '-', 1) in (
+						select aa.PROCDEFID_ from jbpm4_proctype aa where aa.PROCTYPE_=#{PROCDEFID_}
+					)
+				</when>
+			</choose>
+			
+			<if test="null != keywords and '' != keywords">
+				and (
+				<foreach collection="keywords" item="key" separator="or" index="index">
+					(G.VALUE_ like '%${key}%'
+					or D.EXECUTION_ID_ like '%${key}%'
+					or H.VALUE_ like '%${key}%'
+				 	or U.GIVENNAME_ like '%${key}%'
+				 	or detail_value1.VALUE_ = #{key}
+				 	)
+				</foreach>
+				)
+			</if>
+		GROUP BY D.DBID_
+			, D.DBID_
+			, P.ID_
+			, P.PROCDEFID_
+			, D.EXECUTION_ID_
+			, D.NAME_
+			, D.ACTIVITY_NAME_
+			, D.ASSIGNEE_
+			, U1.GIVENNAME_
+			, D.CREATE_ 
+			, D.STATE_
+			, D.FORM_
+			, D.DESCR_
+			, D.PRIORITY_
+			, E.VALUE_
+			, F.VALUE_
+			, G.VALUE_
+			, H.VALUE_
+			, U.GIVENNAME_
+			, I.VALUE_
+			, J.VALUE_
+		<choose>
+			<when test="null != appOrderStr and '' != appOrderStr">
+				order by ${appOrderStr}
+			</when>
+			<otherwise>
+				order by D.ASSIGNEE_ desc, D.CREATE_
+			</otherwise>
+		</choose>
+			
+		
+	</select>
+	
+	<update id="updateLob">
+		update jbpm4_lob
+		set BLOB_VALUE_ = #{1,jdbcType=BLOB}
+		where DEPLOYMENT_ = #{0,jdbcType=VARCHAR}
+	</update>
+	
+	<delete id="deleteTask">
+		delete from jbpm4_task
+		where EXECUTION_ID_ like concat(#{pid},'%')
+		<if test="null != result and '' != result and '回退到全业务支撑' == result">
+			and NAME_ != '全业务支撑'
+		</if>
+		<if test="null != result and '' != result and '回退到设计院' == result">
+			and NAME_ != '设计院'
+		</if>
+	</delete>
+	
+	<delete id="deleteExecution">
+		delete from jbpm4_execution where ID_ like concat(#{pid},'%') and ACTIVITYNAME_ != '全业务支撑'
+	</delete>
+	
+	<update id="updateExecution">
+		update jbpm4_execution set STATE_='active-root' where ID_ = #{pid}
+	</update>
+</mapper>

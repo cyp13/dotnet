@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.zxj.rule.dao.RuleDefinedMapper">
+	<select id="queryRuleDefined" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select distinct
+		t.id as "id",
+		t.code as "code",
+		t.name as "name",
+		t.org_id as "org_id",
+		t.assess_cycle as "assess_cycle",
+		t.if_loop as
+		"if_loop",
+		t.task_start_time as "task_start_time",
+		t.if_check as
+		"if_check",
+		t.if_sample as "if_sample",
+		t.dataurl as "dataurl",
+		t.rule_group as "rule_group",
+		t.pass_type as "pass_type",
+		t.pass_type_value as "pass_type_value",
+		t.pass_score as "pass_score",
+		t.convart_scale as "convart_scale",
+		t.use_range as "use_range",
+		t.audit_unit as "audit_unit",
+		t.circle_days as "circle_days",
+		t.last_run_time as "last_run_time",
+		t.row_valid as "row_valid",
+		t.creater as "creater",
+		t.created as "created",
+		t.row_version as
+		"row_version"
+		from rule_defined t
+		where 1=1
+		<if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+		<if test="null != org_id and '' != org_id">
+			and t.org_id = #{org_id}
+		</if>
+		<if test="null != code and '' != code">
+			and t.code = #{code}
+		</if>
+		<if test="null != row_valid and '' != row_valid">
+			and t.row_valid = #{row_valid}
+		</if>
+		order by t.created asc
+	</select>
+
+	<select id="queryMaxVersion" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select max(t.row_version) as row_version,
+		t.id
+		from rule_defined t
+		where
+		t.code = #{code}
+		<if test="null != row_valid and '' != row_valid">
+			and t.row_valid = #{row_valid}
+		</if>
+		group by t.id
+	</select>
+
+	<insert id="insertRuleDefined" parameterType="java.util.HashMap">
+		insert into
+		rule_defined(org_id,name,code,assess_cycle,task_start_time,if_check,if_sample,
+		<if test="dataurl != null and dataurl != ''">
+			dataurl,
+		</if>
+		rule_group,
+		<if test="pass_type != null and pass_type != ''">
+			pass_type,
+		</if>
+		<if test="pass_type_value != null and pass_type_value != ''">
+			pass_type_value,
+		</if>
+		pass_score,convart_scale,use_range,audit_unit,circle_days, use_for_all,
+		issue_type,last_run_time,row_version,creater,created,remark)
+		values(#{org_id},#{name},#{code},#{assess_cycle},#{task_start_time},#{if_check},#{if_sample},
+		<if test="dataurl != null and dataurl != ''">
+			#{dataurl},
+		</if>
+		#{rule_group},
+		<if test="pass_type != null and pass_type != ''">
+			#{pass_type},
+		</if>
+		<if test="pass_type_value != null and pass_type_value != ''">
+			#{pass_type_value},
+		</if>
+		#{pass_score},#{convart_scale},#{use_range},#{audit_unit},#{circle_days},
+		<choose>
+			<when test="use_for_all != null and use_for_all != ''">
+				#{use_for_all},
+			</when>
+			<otherwise>
+				0,
+			</otherwise>
+		</choose>
+		#{issue_type},#{last_run_time},#{row_version},#{userName},now(),#{remark})
+	</insert>
+
+	<update id="updateRuleDefined" parameterType="java.util.HashMap">
+		update rule_defined
+		<set>
+			<if test="null != row_valid and '' != row_valid">
+				row_valid=#{row_valid},
+			</if>
+		</set>
+		where code=#{code}
+		<if test="null != row_valid and '' != row_valid">
+			and row_valid =1
+		</if>
+	</update>
+
+
+	<delete id="deleteRuleDefined" parameterType="java.lang.String">
+		delete from
+		rule_defined
+		where
+		id=#{id};
+		delete from
+		rule_item
+		where
+		rule_defined_id=#{id}
+	</delete>
+</mapper>

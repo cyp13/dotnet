@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.MarketMapper">
+	<!-- 发布文章 -->
+	<insert id="insertMarket" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="ID">
+			select
+			uuid()
+		</selectKey>
+		INSERT INTO t_market_article (
+		ID,
+		COUNTY,
+		BRANCH_OFFICE,
+		CHANNEL,
+		CHANNEL_PHONE,
+		ARTICLE_TYPE,
+		ARTICLE_TITLE,
+		ARTICLE_PAGE,
+		ARTICLE_SWITCH,
+		`STATUS`,
+		CREATER,
+		CREATED,
+		REMARK,
+		EXT1,
+		EXT2,
+		EXT3,
+		SYSID
+		)
+		VALUES
+		(
+		#{ID},
+		#{COUNTY},
+		#{BRANCH_OFFICE},
+		#{CHANNEL},
+		#{CHANNEL_PHONE},
+		#{ARTICLE_TYPE},
+		#{ARTICLE_TITLE},
+		#{ARTICLE_PAGE},
+		0,
+		0,
+		#{userName},
+		NOW(),
+		#{REMARK},
+		#{EXT1},
+		#{EXT2},
+		#{EXT3},
+		'MY'
+		)
+	</insert>
+	<!-- 修改文章 -->
+	<update id="updateMarket" parameterType="java.util.HashMap">
+		UPDATE t_market_article SET
+		<if test="null != COUNTY and '' != COUNTY">
+			COUNTY=#{COUNTY},
+		</if>
+		<if test="null != BRANCH_OFFICE and '' != BRANCH_OFFICE">
+			BRANCH_OFFICE=#{BRANCH_OFFICE},
+		</if>
+		<if test="null != CHANNEL and '' != CHANNEL">
+			CHANNEL=#{CHANNEL},
+		</if>
+		<if test="null != CHANNEL_PHONE and '' != CHANNEL_PHONE">
+			CHANNEL_PHONE=#{CHANNEL_PHONE},
+		</if>
+		<if test="null != ARTICLE_TYPE and '' != ARTICLE_TYPE">
+			ARTICLE_TYPE=#{ARTICLE_TYPE},
+		</if>
+		<if test="null != ARTICLE_TITLE and '' != ARTICLE_TITLE">
+			ARTICLE_TITLE=#{ARTICLE_TITLE},
+		</if>
+		<if test="null != ARTICLE_PAGE and '' != ARTICLE_PAGE">
+			ARTICLE_PAGE=#{ARTICLE_PAGE},
+		</if>
+		<if test="null != ARTICLE_SWITCH and '' != ARTICLE_SWITCH">
+			ARTICLE_SWITCH=#{ARTICLE_SWITCH},
+		</if>
+		<if test="null != STATUS and '' != STATUS">
+			`STATUS`=#{STATUS},
+		</if>
+		<if test="null != MODIFIER and '' != MODIFIER">
+			MODIFIER=#{MODIFIER},
+		</if>
+		<if test="null != REMARK and '' != REMARK">
+			REMARK=#{REMARK},
+		</if>
+		<if test="null != EXT1 and '' != EXT1">
+			EXT1=#{EXT1},
+		</if>
+		<if test="null != EXT2 and '' != EXT2">
+			EXT2=#{EXT2},
+		</if>
+		<if test="null != EXT3 and '' != EXT3">
+			EXT3=#{EXT3},
+		</if>
+		MODIFIER=#{userName},MOFIFIED=NOW()
+		WHERE ID=#{ID}
+
+	</update>
+	<!-- 查看文章详情 -->
+	<select id="queryMarket" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		SELECT TMA.*, SO.ORG_NAME COUNTY_NAME,
+		SO1.ORG_NAME
+		BRANCH_OFFICE_NAME,
+		(SELECT COUNT(*) FROM
+		T_MARKET_COMMENT WHERE
+		ARTICLEID=TMA.ID)COMMENTCOUNT,
+		(SELECT COUNT(*)
+		FROM T_MARKET_LIKE WHERE
+		ARTICLEID=TMA.ID) LIKECOUNT,
+		(SELECT DICT_NAME FROM sys_dict WHERE
+		PARENT_ID='jdztype' AND
+		SYS_ID=#{sysId} AND DICT_VALUE=TMA.ARTICLE_TYPE
+		)ARTICLE_TYPE_NAME
+		FROM T_MARKET_ARTICLE TMA
+		LEFT JOIN SYS_ORG SO ON
+		TMA.COUNTY=SO.ID
+		LEFT
+		JOIN SYS_ORG SO1 ON SO1.ID=TMA.BRANCH_OFFICE
+		WHERE
+		TMA.ID=#{ID}
+	</select>
+	<!-- 删除文章 -->
+	<delete id="deleteMarket" parameterType="java.lang.String">
+		DELETE T FROM
+		t_market_article T WHERE T.ID=#{ID}
+	</delete>
+	<!-- 查看文章列表 -->
+	<select id="queryMarketAll" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		SELECT
+		SO.ORG_NAME COUNTY_NAME,
+		SO1.ORG_NAME BRANCH_OFFICE_NAME,
+		(SELECT
+		COUNT(*) FROM
+		T_MARKET_COMMENT WHERE
+		ARTICLEID=T.ID)COMMENTCOUNT,
+		(SELECT COUNT(*)
+		FROM T_MARKET_LIKE WHERE
+		ARTICLEID=T.ID) LIKECOUNT,
+		(SELECT DICT_NAME
+		FROM sys_dict WHERE PARENT_ID='jdztype' AND SYS_ID =
+		#{sysId} AND DICT_VALUE=T.ARTICLE_TYPE
+		)ARTICLE_TYPE_NAME,
+		T.*
+		FROM
+		T_MARKET_ARTICLE T
+		LEFT JOIN SYS_ORG SO ON T.COUNTY=SO.ID
+		LEFT JOIN
+		SYS_ORG SO1 ON SO1.ID=T.BRANCH_OFFICE
+		WHERE 1=1
+
+		<if test="null != ID and '' != ID">
+			AND T.ID=#{ID}
+		</if>
+		<if test="null != ARTICLE_TITLEORCREATER and '' != ARTICLE_TITLEORCREATER">
+			AND ( T.ARTICLE_TITLE like '%${ARTICLE_TITLEORCREATER}%' OR T.CREATER
+			like '%${ARTICLE_TITLEORCREATER}%')  <!-- 宣传标题或发起人 -->
+		</if>
+		<if test="null != STARTTIME and '' != STARTTIME">
+			AND T.CREATED >=DATE_FORMAT(#{STARTTIME}, '%Y-%m-%d
+			00:00:00')
+		</if>
+		<if test="null != ENDTIME and '' != ENDTIME">
+			AND T.CREATED &lt;=
+			DATE_FORMAT(DATE_ADD(#{ENDTIME},INTERVAL 1
+			DAY),'%Y-%m-%d 00:00:00')
+		</if> 
+		<if test="null != STARTTIMEMOFIFIED and '' != STARTTIMEMOFIFIED">
+			AND T.MOFIFIED >=DATE_FORMAT(#{STARTTIMEMOFIFIED}, '%Y-%m-%d
+			00:00:00')
+		</if>
+		<if test="null != ENDTIMEMOFIFIED and '' != ENDTIMEMOFIFIED">
+			AND T.MOFIFIED &lt;=
+			DATE_FORMAT(DATE_ADD(#{ENDTIMEMOFIFIED},INTERVAL 1
+			DAY),'%Y-%m-%d 00:00:00')
+		</if>
+		<if test="null != STATUS and '-1' != STATUS"> 
+			AND T.STATUS IN (${STATUS})<!-- 审核状态 0.审核中、1.未通过、2.已通过 -->
+		</if>
+		<if test="null != STATUSIS and '-1' != STATUSIS">
+			AND (T.`STATUS`='2' OR T.`STATUS`='1')  <!-- 审核状态 0.审核中、1.未通过、2.已通过 -->
+		</if>
+		<if test="null != ARTICLE_SWITCH and '-1' != ARTICLE_SWITCH">
+			AND T.ARTICLE_SWITCH=#{ARTICLE_SWITCH} 	<!-- 上下架状态 0.上架 1.下架 -->
+		</if>
+		<if test="null != COUNTY and '-1' != COUNTY">
+			AND T.COUNTY=#{COUNTY} 	<!-- 区县 -->
+		</if>
+		<if test="null != BRANCH_OFFICE and '-1' != BRANCH_OFFICE">
+			AND T.BRANCH_OFFICE=#{BRANCH_OFFICE} 	<!-- 分局 -->
+		</if>
+		<if test="null != ARTICLE_TYPE and '-1' != ARTICLE_TYPE">
+			AND T.ARTICLE_TYPE IN (${ARTICLE_TYPE}) 	<!-- 业务类型 -->
+		</if>
+		<if test="null != CREATER and '-1' != CREATER">
+			AND T.CREATER=#{CREATER} 	<!-- 用户名，如果传入就是我的发布 -->
+		</if>
+		<if test="null != ARTICLE_TITLE and '-1' != ARTICLE_TITLE">
+			AND T.ARTICLE_TITLE like '%${ARTICLE_TITLE}%' 	<!-- 用户名，如果传入就是我的发布 -->
+		</if>
+		ORDER BY T.CREATED DESC
+
+	</select>
+
+	<!-- 添加评论 -->
+	<insert id="insertMarketComment" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="ID">
+			select
+			uuid()
+		</selectKey>
+		INSERT INTO t_market_comment
+		(
+		ID,
+		COUNTY,
+		BRANCH_OFFICE,
+		CHANNEL,
+		CHANNEL_PHONE,
+		ARTICLEID,
+		PAGE,
+		CREATER,
+		CREATED,
+		STATUS
+		)
+		VALUES
+		(
+		#{ID},
+		#{COUNTY},
+		#{BRANCH_OFFICE},
+		#{CHANNEL},
+		#{CHANNEL_PHONE},
+		#{ARTICLEID},
+		#{PAGE},
+		#{userName},
+		NOW(),
+		0
+		)
+	</insert>
+
+	<!-- 查看文章评论列表new -->
+	<select id="queryMarketCommentList" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		SELECT TMC.*, SO.ORG_NAME COUNTY_NAME,
+		SO1.ORG_NAME
+		BRANCH_OFFICE_NAME FROM t_market_comment TMC
+		LEFT JOIN SYS_ORG SO ON
+		TMC.COUNTY=SO.ID
+		LEFT JOIN SYS_ORG SO1 ON SO1.ID=TMC.BRANCH_OFFICE
+		WHERE
+		TMC.ARTICLEID=#{ARTICLEID}
+	</select>
+
+	<!-- 点赞 -->
+	<insert id="insertMarketLike" parameterType="java.util.HashMap">
+		INSERT INTO
+		t_market_like (ARTICLEID,CREATER) VALUES (#{ARTICLEID},#{userName})
+	</insert>
+	<!-- 取消点赞 -->
+	<delete id="deleteMarketLike" parameterType="java.lang.String">
+		DELETE ML FROM
+		t_market_like ML WHERE ML.ARTICLEID=#{ARTICLEID} AND
+		ML.CREATER=#{userName}
+	</delete>
+	
+	<!-- 查看用户是否点赞 -->
+	<select id="isMarketLikeOk" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		SELECT * FROM t_market_like WHERE ARTICLEID =#{ARTICLEID} AND CREATER = #{userName}
+	</select>
+	<!-- 上下架 -->
+	<update id="updateMarketARTICLE_SWITCH" parameterType="java.util.HashMap">
+		UPDATE t_market_article SET 
+		ARTICLE_SWITCH = #{ARTICLE_SWITCH} 
+		WHERE ID=#{ID} 
+	</update>
+</mapper>

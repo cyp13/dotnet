@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.RewardSurveyRecordMapper">
+	<select id="queryRewardSurveyRecord" parameterType="java.util.HashMap"
+		resultType="java.util.HashMap">
+		select t.ID as "rsrId",
+		t1.ID as "rsId",
+		t1.SURVEY_TITLE as "rsTitle",
+		t1.SURVEY_CONTENT as "rsContent",
+		t1.SURVEY_TYPE as "rsType",
+		t1.SURVEY_SENDED as "rsSended",
+		t1.CREATER as "creater",
+		(select
+		USER_ALIAS from sys_user where user_name = t1.CREATER) as
+		"createrName",
+		t.USER_ID as "userId",
+		t.FD_STATUS as "fdStatus",
+		t.FD_RESULT as "rsChoose",
+		t.FD_TIME as "fdTime"
+		from
+		t_reward_survey_record t
+		join t_reward_survey t1 on
+		t1.ID = t.SURVEY_ID
+		and t1.SURVEY_STATUS = '1'
+		where 1 = 1
+		<if test="null != userId and '' != userId">
+			and t.USER_ID = #{userId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != id and '' != id">
+			and t.ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rsId and '' != rsId">
+			and t1.ID = #{rsId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != fdStatus and '' != fdStatus">
+			and t.FD_STATUS = #{fdStatus,jdbcType=VARCHAR}
+		</if>
+		order by t1.SURVEY_SENDED desc
+	</select>
+	<update id="updateRewardSurveyRecord" parameterType="java.util.HashMap">
+		update
+		t_reward_survey_record
+		set FD_STATUS = '1',
+		FD_RESULT =
+		#{rsChoose,jdbcType=VARCHAR},
+		FD_TIME = #{fdTime,jdbcType=TIMESTAMP},
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED =
+		#{modified,jdbcType=TIMESTAMP}
+		where ID =
+		#{rsrId,jdbcType=TIMESTAMP}
+	</update>
+	<select id="queryRewardSurveyRecordByRsId" parameterType="java.util.HashMap"
+		resultType="java.util.HashMap">
+		SELECT
+		t.ID AS "id",
+		t.USER_ID AS "userId",
+		t.FD_STATUS AS "fdStatus",
+		t.FD_RESULT AS "fdResult",
+		t.FD_TIME AS "fdTime",
+		t1.USER_ALIAS AS
+		"userCnName",
+		t1.MOBILE_PHONE AS "mPhone",
+		t2.id AS "orgId",
+		t2.org_name
+		AS "orgName",
+		(case when t2.org_type = '3' then t2.ORG_NAME
+		when
+		t2.org_type = '4' then ( select t3.ORG_NAME from sys_org t3 where
+		t3.ID = t2.PARENT_ID )
+		when t2.ORG_TYPE = '5' then ( select t3.ORG_NAME
+		from sys_org t3 where
+		t3.ID = ( select t4.parent_id from sys_org t4
+		where t4.id =
+		t2.parent_id ) )
+		else ''
+		end) as "county",
+		(case when
+		t2.org_type = '4' then t2.ORG_NAME
+		when t2.org_type = '5' then ( select
+		t3.ORG_NAME from sys_org t3 where
+		t3.ID = t2.PARENT_ID )
+		else ''
+		end) as
+		"branch"
+		FROM
+		t_reward_survey_record t
+		LEFT JOIN sys_user t1 ON t1.id =
+		t.user_id
+		LEFT JOIN sys_org t2 ON
+		t2.id = t1.ORG_ID
+		WHERE
+		t.SURVEY_ID =
+		#{rsId,jdbcType=VARCHAR}
+		<if test="null != fdStatus and '' != fdStatus">
+			and t.FD_STATUS = #{fdStatus,jdbcType=VARCHAR}
+		</if>
+		order by t2.ID asc
+		<if test="null != order and '' != order">
+			,t.FD_RESULT ${order}
+		</if>
+	</select>
+	<delete id="deleteRelatedFileInfo" parameterType="java.lang.String">
+		delete from
+		sys_file where related_id = #{_parameter,jdbcType=VARCHAR};
+	</delete>
+
+	<select id="queryMsgUnreadCount" parameterType="java.util.HashMap"
+		resultType="java.util.HashMap">
+		SELECT COUNT(*) count FROM sys_msg_record smr LEFT JOIN sys_msg
+		sm ON sm.ID=smr.MSG_ID
+		WHERE smr.USER_ID=#{userId} AND smr.READ_STATUS='2' AND smr.SYS_ID=#{sysId} AND sm.MSG_TYPE=#{msgType} 
+	</select>
+	<select id="queryMsgRewardSurveyUnreadCount" parameterType="java.util.HashMap"
+		resultType="java.util.HashMap">
+		SELECT COUNT(*) count FROM t_reward_survey_record WHERE
+		FD_STATUS =0 AND
+		USER_ID=#{userId} AND SYS_ID=#{sysId};
+	</select>
+	<select id="queryMsgOrRewardSurveyUnreadCount" parameterType="java.util.HashMap"
+		resultType="java.util.HashMap">
+		SELECT SUM(IF(sm.MSG_TYPE=1,1,0)) ywpxCount,SUM(IF(sm.MSG_TYPE=2,1,0)) cjzccdCount ,
+		(SELECT COUNT(*)  FROM t_reward_survey_record WHERE FD_STATUS =0 AND
+		USER_ID=#{userId} AND SYS_ID=#{sysId}) cjjdNoticeCount
+		FROM sys_msg_record smr 
+		LEFT JOIN sys_msg sm ON sm.ID=smr.MSG_ID
+		WHERE smr.USER_ID=#{userId} AND smr.READ_STATUS='2' AND smr.SYS_ID=#{sysId} 
+	</select>
+</mapper>

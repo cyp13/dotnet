@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.sys.mapper.FileMapper">
+	<select id="queryFile" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select t.* from (
+		select
+		t.id as "id",
+		t.parent_id as "parentId",
+		t.file_type as "fileType",
+		d.dict_name as "fileTypeName",
+		t.file_name as "fileName",
+		t.related_id as "relatedId",
+		t.file_path as "filePath",
+		t.file_ext as "fileExt",
+		t.creater as "creater",
+		CAST(t.created as datetime) as "created",
+		t.modifier as "modifier",
+		CAST(t.modified as datetime) as "modified",
+		t.remark as "remark",
+		t.row_default as "rowDefault",
+		t.row_valid as "rowValid",
+		t.ext1 as "ext1",
+		t.ext2 as "ext2",
+		t.ext3 as "ext3",
+		t.version as "version",
+		t.file_source as "fileSource",
+		t.related_type as "relatedType",
+		d2.dict_name as "relatedTypeName"
+		from sys_file t
+		left join sys_dict d
+		on d.parent_id='fileType'
+		and d.dict_value = t.file_type
+		left join sys_dict d2
+		on d.parent_id='relatedType'
+		and d.dict_value = t.related_type
+		where 1=1
+		<if test="null != id and '' != id">
+			and t.ID = #{id}
+		</if>
+		<if test="null != parentId and '' != parentId">
+			and t.parent_id = #{parentId}
+		</if>
+		<if test="null != fileType and '' != fileType">
+			and t.file_TYPE = #{fileType}
+		</if>
+		<if test="null != fileName and '' != fileName">
+			and t.file_name like '%${fileName}%'
+		</if>
+		<if test="null != relatedId and '' != relatedId">
+			and t.related_id = #{relatedId}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and t.ROW_VALID = #{rowValid}
+		</if>
+		<if test="null != version and '' != version">
+			and t.version =
+			#{version}
+		</if>
+		<if test="null != userName and '' != userName">
+			and t.creater =
+			#{userName}
+		</if>
+		<if test="null != ext1 and '' != ext1">
+			and t.ext1 = #{ext1}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (t.file_name like '%${keywords}%'
+			or t.file_source like
+			'%${keywords}%')
+		</if>
+		) t
+		<if test="null != orderStr and '' != orderStr">
+			${orderStr}
+		</if>
+	</select>
+
+	<insert id="insertFile" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select uuid()
+		</selectKey>
+		insert into
+		sys_file(id,parent_id,file_type,file_name,related_id,file_path,file_ext,creater,created,
+		modifier,modified,remark,row_default,row_valid,ext1,ext2,ext3,version,related_type,file_source)
+		values(#{id},#{parentId},#{fileType},#{fileName},#{relatedId},#{filePath},#{fileExt},#{creater},now(),
+		#{modifier},now(),#{remark},#{rowDefault},#{rowValid},#{ext1},#{ext2},#{ext3},#{version},#{relatedType},#{fileSource})
+	</insert>
+
+	<update id="updateFile" parameterType="java.util.HashMap">
+		update sys_file set
+		parent_id=#{parentId},
+		file_type=#{fileType},
+		file_name=#{fileName},
+		related_id=#{relatedId},
+		file_path=#{filePath},
+		file_ext=#{fileExt},
+		modifier=#{modifier},
+		modified=now(),
+		remark=#{remark},
+		row_default=#{rowDefault},
+		row_valid=#{rowValid},
+		ext1=#{ext1},
+		ext2=#{ext2},
+		ext3=#{ext3},
+		version=#{version},
+		related_type=#{relatedType}
+		file_source=#{fileSource}
+		where id=#{id}
+	</update>
+
+	<delete id="deleteFile" parameterType="java.lang.String">
+		delete from
+		sys_file where
+		id=#{id}
+	</delete>
+
+	<delete id="deleteFileByProId" parameterType="java.lang.String">
+		delete from
+		sys_file where
+		ext1=#{ext1}
+	</delete>
+</mapper>

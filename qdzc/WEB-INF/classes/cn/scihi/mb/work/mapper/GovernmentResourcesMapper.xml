@@ -1,0 +1,473 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.GovernmentResourcesMapper">
+	<select id="queryGovernmentResources" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select
+		t.id
+		,t.form_code
+		,t.form_type
+		,t.originator
+		,t.organization_name
+		,t.originator_phone
+		,t.organization_code
+		,t.bussiness_small_type
+		,t.special_number
+		,t.group_name
+		,t.group_coding
+		,t.install_address
+		,t.particular_address
+		,t.install_name
+		,t.install_phone
+		,t.orgnames as orgNames
+		,su.USER_ALIAS as customer_manager_name
+		,t.if_hefeisu
+		,t.remark
+		,t.status
+		,t.creater
+		,t.created
+		,t.modifier
+		,t.modified
+		,t.row_default
+		,t.row_valid
+		,t.row_version
+		,t.enterprise_flag
+		,t.sjy_result
+		,t.sign
+		,t.merge_sign
+		,t.ext1
+		,t.ext2
+		,t.ext3
+		,t.ext4
+		,t.ext5
+		,t.ext6
+		,tt.pid as "pid"
+		<!-- ,o.org_name as "county_name"
+		,o2.org_name as "branch_office_name" -->
+		from t_work_GovernmentResources t
+		<!-- left join sys_org o
+		on t.county = o.org_code
+		left join sys_org o2
+		on
+		t.branch_office = o2.org_code
+		left join sys_org o3
+		on t.publisher =
+		o3.org_code -->
+		left join t_task tt
+		on t.id = tt.form_id
+		left join sys_user su on su.USER_NAME = t.customer_manager
+		where 1=1
+		<if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+		<if test="null != pid and '' != pid">
+			and tt.pid = #{pid}
+		</if>
+		<if test="null != service_type and '' != service_type">
+			and t.service_type = #{service_type}
+		</if>
+		<if test="null != county and '' != county">
+			and t.county = #{county}
+		</if>
+		<if test="null != branch_office and '' != branch_office">
+			and t.branch_office = #{branch_office}
+		</if>
+		<if test="null != user_phone and '' != user_phone">
+			and t.user_phone like  concat('%',#{user_phone},'%')
+		</if>
+		<choose>
+			<when test="null != orderStr and '' != orderStr">
+				${orderStr}
+			</when>
+			<otherwise>
+				order by t.CREATED desc
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="queryGovernmentResourcesExt" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select
+		t.id as "id",
+		t.form_code as "form_code",
+		t.pid as "pid",
+		t.org_id as "org_id",
+		t.org_name as "org_name",
+		t.role_name  as "role_name",
+		t.executor as "executor",
+		u.user_alias as "executor_name",
+		t.executor_phone as "executor_phone",
+		t.status as "status",
+		t.execute_time as "execute_time",
+		t.opinion as "opinion",
+		t.result as "result",
+		t.creater as "creater",
+		t.created as "created",
+		t.ext1 as "ext1",
+		t.ext2 as "ext2",
+		t.ext3 as "ext3"
+		from t_work_GovernmentResources_ext t
+		left join sys_user u
+		on t.executor=u.user_name
+		where 1=1
+		<if test="null != form_code and '' != form_code">
+			and t.form_code = #{form_code}
+		</if>
+		<if test="null != pId and '' != pId">
+			and t.pid = #{pId}
+		</if>
+		<if test="null != org_id and '' != org_id">
+			and t.org_id = #{org_id}
+		</if>
+		<if test="null != executor and '' != executor">
+			and t.executor = #{executor}
+		</if>
+		<if test="null != status and '' != status">
+			and t.status = #{status}
+		</if>
+		<choose>
+			<when test="null != orderStr and '' != orderStr">
+				${orderStr}
+			</when>
+			<otherwise>
+				order by t.CREATED desc
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="queryPartGovernmentResourcesExt" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select
+		distinct
+		t.form_code as "form_code",
+		t.pid as "pid",
+		t.org_id as "org_id",
+		t.org_name as "org_name",
+		t.role_name ,
+		t.executor as "executor",
+		u.user_alias as "executor_name",
+		t.executor_phone as "executor_phone",
+		t.ext1,
+		t.ext2,
+		t.ext3
+		from t_work_GovernmentResources_ext t
+		left join sys_user u
+		on t.executor=u.user_name
+		where 1=1
+		<if test="null != form_code and '' != form_code">
+			and t.form_code = #{form_code}
+		</if>
+		<if test="null != pId and '' != pId">
+			and t.pid = #{pId}
+		</if>
+		<if test="null != status and '' != status">
+			and t.status = #{status}
+		</if>
+		order by t.CREATED desc
+	</select>
+	
+	<select id="queryIfFinished"  parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select count(1) as "num"
+		 from t_work_GovernmentResources t
+		where 
+		t.ext5=t.ext6
+		and t.ext5 is not null
+		<if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+	</select>
+	
+	<select id="queryRoleByOrg"  parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select DISTINCT r.role_name,
+		r.id as 'role_id',
+		CONCAT(r.sys_id,'.',r.role_name) as 'roleName_'
+		from 
+			sys_user u
+			left join sys_user_role ur
+			on u.id=ur.USER_ID
+			left join sys_role r
+			on ur.ROLE_ID=r.ID
+			where u.ORG_ID=#{orgId}
+			and u.user_name !=#{userName}
+			and u.row_valid='1'
+			and r.role_name !='绵阳渠道支撑服务平台管理员'
+			and r.row_valid='1'
+	</select>
+	
+	<select id="queryUserByOrg"  parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select u.user_name as user_name,
+		u.user_alias as user_alias,
+		group_concat(r.role_name) as role_name 
+		from sys_user u
+		left join sys_user_role ur
+		on u.id=ur.user_id
+		left join sys_role r
+		on ur.role_id=r.id
+		where u.row_valid = '1'
+		and u.org_id=#{orgId}
+		and r.ROLE_NAME = #{roleName}
+		group by u.user_name,u.user_alias
+
+	</select>
+	
+	<select id="queryNoUserOrg"  parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select DISTINCT o.id,o.org_name
+		from sys_org o
+		where 1=1
+		and o.ORG_TYPE = '5'
+		AND o.ext1 = 'MY'
+		<if test="null != orgIds and '' != orgIds">
+			and o.id in
+			<foreach collection="orgIds" item="orgId" index="index" open="(" close=")" separator=",">
+				#{orgId}
+			</foreach>
+		</if>
+		and o.id not in( 
+		SELECT DISTINCT
+				o.id
+				FROM
+					sys_org o
+				LEFT JOIN sys_user u ON u.ORG_ID = o.ID
+				LEFT JOIN sys_user_role ur ON u.id = ur.USER_ID
+				LEFT JOIN sys_role r ON ur.ROLE_ID = r.ID
+				WHERE
+					o.ORG_TYPE = '5'
+				AND o.ext1 = 'MY'
+				AND r.ROLE_NAME = '渠道班长'
+		) 
+	</select>
+	
+	<select id="queryQDUsers"  parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		SELECT
+		u.org_id,
+		o.org_name,
+		u.user_name as "users"
+<!-- 			GROUP_CONCAT(u.user_name) as "users" -->
+		FROM
+			sys_user u
+		LEFT JOIN sys_org o ON u.ORG_ID = o.ID
+		LEFT JOIN sys_user_role ur ON u.id = ur.USER_ID
+		LEFT JOIN sys_role r ON ur.ROLE_ID = r.ID
+		WHERE
+			o.ORG_TYPE = '5'
+		AND o.ext1 = 'MY'
+		AND r.ROLE_NAME = '渠道班长'
+		<if test="null != orgIds and '' != orgIds">
+			and u.org_id in
+			<foreach collection="orgIds" item="orgId" index="index" open="(" close=")" separator=",">
+				#{orgId}
+			</foreach>
+		</if>
+<!-- 		GROUP BY -->
+<!-- 		u.org_id,o.org_name -->
+	</select>
+
+	<insert id="insertGovernmentResources" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select
+			uuid()
+		</selectKey>
+		
+		insert into
+		t_work_GovernmentResources(
+			id
+			,form_code
+			,form_type
+			,originator
+			,organization_name
+			,originator_phone
+			,organization_code
+			,bussiness_small_type
+			,special_number
+			,group_name
+			,group_coding
+			,install_address
+			,particular_address
+			,install_name
+			,install_phone
+			,orgnames
+			,customer_manager
+			,if_hefeisu
+			,remark
+			,status
+			,creater
+			,created
+			,modifier
+			,modified
+			,row_default
+			,row_valid
+			,row_version
+			,enterprise_flag
+			,ext1
+			,ext2
+			,ext3
+			,ext4
+			,ext5
+			,ext6
+		)
+		values(
+			#{id}
+			,#{form_code}
+			,#{form_type}
+			,#{originator}
+			,#{organization_name}
+			,#{originator_phone}
+			,#{organization_code}
+			,#{bussiness_small_type}
+			,#{special_number}
+			,#{group_name}
+			,#{group_coding}
+			,#{install_address}
+			,#{particular_address}
+			,#{install_name}
+			,#{install_phone}
+			,#{orgNames}
+			,#{customer_manager}
+			,#{if_hefeisu}
+			,#{remark}
+			,#{status}
+			,#{userName}
+			,now()
+			,#{modifier}
+			,#{modified}
+			,#{row_default}
+			,#{row_valid}
+			,#{row_version}
+			,#{enterprise_flag}
+			,#{ext1}
+			,#{ext2}
+			,#{ext3}
+			,#{ext4}
+			,#{ext5}
+			,#{ext6}
+		)
+	</insert>
+	
+	<insert id="insertGovernmentResourcesExt" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select
+			uuid()
+		</selectKey>
+		
+		insert into
+		t_work_GovernmentResources_ext(id,form_code,pid,org_id,org_name,role_name,executor,creater,created,ext1)
+		values(#{id},#{form_code},#{pId},#{org_id},#{org_name},#{role_name},#{executor},#{userName},now(),#{ext1})
+	</insert>
+
+	<update id="updateGovernmentResources" parameterType="java.util.HashMap">
+		update t_work_GovernmentResources set
+		<if test="null != service_type and '' != service_type">
+			service_type=#{service_type},
+		</if>
+		<if test="null != user_phone and '' != user_phone">
+			user_phone=#{user_phone},
+		</if>
+		<if test="null != finish_date and '' != finish_date">
+			finish_date=#{finish_date},
+		</if>
+		<if test="null != remark and '' != remark">
+			remark=#{remark},
+		</if>
+		<if test="null != status and '' != status">
+			status=#{status},
+		</if>
+		<if test="null != ext1 and '' != ext1">
+			ext1=#{ext1},
+		</if>
+		<if test="null != ext2 and '' != ext2">
+			ext2=#{ext2},
+		</if>
+		<if test="null != ext3 and '' != ext3">
+			ext3=#{ext3},
+		</if>
+		<if test="null != ext5 and '' != ext5">
+			ext5=#{ext5},
+		</if>
+		<if test="null != ext6 and '' != ext6">
+			ext6=ext6+1,
+		</if>
+		<if test="null != row_version and '' != row_version">
+			row_version=#{row_version},
+		</if>
+		<if test="null != sign and '' != sign">
+			sign=#{sign},
+		</if>
+		<if test="null != sjy_result and '' != sjy_result">
+			sjy_result=#{sjy_result},
+		</if>
+		<if test="null != merge_sign and '' != merge_sign">
+			merge_sign=#{merge_sign},
+		</if>
+		modifier=#{userName},
+		modified=now()
+		where id=#{id}
+	</update>
+	
+	<update id="updateGovernmentResourcesExt" parameterType="java.util.HashMap">
+		update t_work_GovernmentResources_ext set
+		<if test="null != executor and '' != executor">
+			executor=#{userName},
+			execute_time=now(),
+		</if>
+		<if test="null != status and '' != status">
+			status=#{status},
+		</if>
+		<if test="null != executor_phone and '' != executor_phone">
+			executor_phone=#{executor_phone},
+		</if>
+		<if test="null != opinion and '' != opinion">
+			opinion=#{opinion},
+		</if>
+		<if test="null != result and '' != result">
+			result=#{result},
+		</if>
+		modified = now()
+		where id=#{id}
+	</update>
+
+	<delete id="deleteGovernmentResources" parameterType="java.lang.String">
+		delete from
+		t_work_GovernmentResources
+		where
+		id=#{id}
+	</delete>
+
+	<delete id="deleteOtherTasks" parameterType="java.lang.String">
+		delete  FROM
+		jbpm4_task t
+		where t.EXECUTION_ID_=#{pId}
+		and t.ASSIGNEE_ !=#{userName}
+		and t.SUPERTASK_ is not null
+	</delete>
+	
+	<select id="queryFormNodeInfos" parameterType="java.util.HashMap" resultType="java.util.Map">
+		select t.nodeRoleName from t_work_governmentresources_node t
+		left join t_task tt on tt.FORM_ID = t.form_id
+		where 1=1
+		<if test="null != pid and '' != pid">
+			and tt.PID=#{pid}
+		</if>
+	</select>
+	
+	<insert id="insertFormNodeInfos" parameterType="java.util.HashMap">
+		insert into t_work_governmentresources_node(form_id,form_code) value(#{form_id},#{form_code})
+	</insert>
+	
+	<select id="queryNodeName" parameterType="java.util.HashMap" resultType="java.util.Map">
+		select
+		jhv.VALUE_ as node_name
+		from jbpm4_hist_var jhv
+		where 1=1
+		<if test="null != pid and '' != pid">
+			and PROCINSTID_ = #{pid}
+		</if>
+		and VARNAME_ = 'ActivityPath_'
+	</select>
+</mapper>

@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.RoleMenuMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.RoleMenu">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="ROLE_ID" jdbcType="VARCHAR" property="roleId" />
+		<result column="MENU_ID" jdbcType="VARCHAR" property="menuId" />
+		<result column="PARENT_ID" jdbcType="VARCHAR" property="parentId" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+	</resultMap>
+	<select id="queryRoleMenu" parameterType="cn.scihi.sys.pojo.RoleMenu"
+		resultType="java.util.LinkedHashMap">
+		select
+		distinct
+		T.SYS_ID as "sysId",
+		T.ROLE_ID as "roleId",
+		T.MENU_ID AS "menuId",
+		T1.PARENT_ID as "parentId",
+		T1.MENU_NAME as "menuName",
+		T1.MENU_URL as "menuUrl"
+		from
+		sys_role_menu T
+		left join sys_menu T1 on T.MENU_ID = T1.ID and T1.SYS_ID = T.SYS_ID
+		where 1=1 
+		and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		and T1.ROW_VALID = '1'
+		<![CDATA[ and T1.ROW_VALID <> '9' ]]>
+		<if test="null != roleId and '' != roleId">
+			and T.ROLE_ID=#{roleId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != menuId and '' != menuId">
+			and T.MENU_ID=#{menuId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+	</select>
+	<delete id="deleteByRoleId" parameterType="java.lang.String">
+		delete from
+		sys_role_menu
+		where ROLE_ID = #{roleId,jdbcType=VARCHAR}
+	</delete>
+	<delete id="deleteByMenuId">
+		delete from
+		sys_role_menu
+		where MENU_ID = #{0,jdbcType=VARCHAR}
+		and SYS_ID=#{1,jdbcType=VARCHAR}
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.RoleMenu">
+		insert into sys_role_menu (
+		ID,
+		SYS_ID, 
+		ROLE_ID, 
+		MENU_ID,
+		PARENT_ID, 
+		MODIFIER,
+		MODIFIED,
+		ROW_VERSION)
+		values
+		(#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{roleId,jdbcType=VARCHAR},
+		#{menuId,jdbcType=VARCHAR},
+		#{parentId,jdbcType=VARCHAR},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{rowVersion,jdbcType=DECIMAL})
+	</insert>
+</mapper>

@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.LogMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.Log">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="MODULE" jdbcType="VARCHAR" property="module" />
+		<result column="METHOD" jdbcType="VARCHAR" property="method" />
+		<result column="DESCRIPTION" jdbcType="VARCHAR" property="description" />
+		<result column="RESPONSE_TIME" jdbcType="DECIMAL" property="responseTime" />
+		<result column="STATUS" jdbcType="VARCHAR" property="status" />
+		<result column="CREATER_IP" jdbcType="VARCHAR" property="createrIp" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="TARGET_URL" jdbcType="VARCHAR" property="targetUrl" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, SYS_ID, MODULE, METHOD, DESCRIPTION, RESPONSE_TIME, STATUS, 
+		CREATER_IP, CREATER, CREATED, TARGET_URL<!-- , REMARK  -->
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="cn.scihi.sys.pojo.Log"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_log
+		where 1 = 1
+		and SYS_ID = #{sysId,jdbcType=VARCHAR}
+		<if test="null != id and '' != id">
+			and ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != creater and '' != creater">
+			and CREATER = #{creater,jdbcType=VARCHAR}
+		</if>
+		<if test="null != status and '' != status">
+			and STATUS = #{status,jdbcType=VARCHAR}
+		</if>
+		<if test="null != startTime and '' != startTime and null != endTime and '' != endTime">
+			and CREATED between #{startTime,jdbcType=TIMESTAMP} and #{endTime,jdbcType=TIMESTAMP}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (CREATER like '%${keywords}%'
+			or MODULE like '%${keywords}%'
+			or METHOD like '%${keywords}%')
+		</if>
+		<if test="null != orderStr and '' != orderStr">
+			order by ${orderStr}
+		</if>
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from sys_log where ID = #{id,jdbcType=VARCHAR}
+	</delete>
+	<delete id="deleteBySysId">
+		delete from sys_log where SYS_ID = #{0,jdbcType=VARCHAR}
+		<!-- truncate table sys_log -->
+	</delete>
+	<delete id="deleteByCreated">
+		delete from sys_log where 
+		<![CDATA[ CREATED < #{0,jdbcType=TIMESTAMP} ]]>
+		and SYS_ID = #{1,jdbcType=VARCHAR}
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.Log">
+		insert into sys_log (
+		ID,
+		SYS_ID,
+		MODULE, 
+		METHOD,
+		DESCRIPTION, 
+		RESPONSE_TIME,
+		STATUS,
+		CREATER_IP,
+		CREATER, 
+		CREATED,
+		TARGET_URL,
+		REMARK
+		)
+		values (#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{module,jdbcType=VARCHAR},
+		#{method,jdbcType=VARCHAR},
+		#{description,jdbcType=VARCHAR},
+		#{responseTime,jdbcType=DECIMAL},
+		#{status,jdbcType=VARCHAR},
+		#{createrIp,jdbcType=VARCHAR},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{targetUrl,jdbcType=VARCHAR},
+		#{remark,jdbcType=VARCHAR}
+		)
+	</insert>
+</mapper>

@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="cn.scihi.sys.mapper.JobMapper">
+	<resultMap id="BaseResultMap" type="cn.scihi.sys.pojo.Job">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		<result column="JOB_NAME" jdbcType="VARCHAR" property="jobName" />
+		<result column="JOB_GROUP" jdbcType="VARCHAR" property="jobGroup" />
+		<result column="CRON_EXPRESSION" jdbcType="VARCHAR" property="cronExpression" />
+		<result column="BEAN_ID" jdbcType="VARCHAR" property="beanId" />
+		<result column="BEAN_CLASS" jdbcType="VARCHAR" property="beanClass" />
+		<result column="BEAN_METHOD" jdbcType="VARCHAR" property="beanMethod" />
+		<result column="PARAMETERS" jdbcType="VARCHAR" property="parameters" />
+		<result column="CONCURRENT_FLAG" jdbcType="VARCHAR" property="concurrentFlag" />
+		<result column="SORT_NO" jdbcType="INTEGER" property="sortNo" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, SYS_ID, JOB_NAME, JOB_GROUP, CRON_EXPRESSION, BEAN_ID, BEAN_CLASS,
+		BEAN_METHOD, PARAMETERS, CONCURRENT_FLAG,
+		SORT_NO, CREATER, CREATED, MODIFIER, MODIFIED, REMARK, ROW_DEFAULT, ROW_VALID,
+		EXT1, EXT2, EXT3, ROW_VERSION
+	</sql>
+	<select id="selectByPrimaryKey" parameterType="cn.scihi.sys.pojo.Job"
+		resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from sys_job
+		where 1 = 1
+		<if test="null == extMap._JOBINIT">
+			and SYS_ID = #{sysId,jdbcType=VARCHAR}
+		</if>
+		<![CDATA[ and ROW_VALID <> '9' ]]>
+		<if test="null != id and '' != id">
+			and ID=#{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != jobName and '' != jobName">
+			and JOB_NAME=#{jobName,jdbcType=VARCHAR}
+		</if>
+		<if test="null != jobGroup and '' != jobGroup">
+			and JOB_GROUP=#{jobGroup,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and JOB_NAME like '%${keywords}%'
+		</if>
+		order by SORT_NO, CREATED desc
+	</select>
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+		delete from sys_job where ID = #{id,jdbcType=VARCHAR} <![CDATA[ and ROW_DEFAULT <> '1' ]]>
+	</delete>
+	<insert id="insert" parameterType="cn.scihi.sys.pojo.Job">
+		insert into sys_job (
+		ID,
+		SYS_ID,
+		JOB_NAME, 
+		JOB_GROUP, 
+		CRON_EXPRESSION,
+		BEAN_ID, 
+		BEAN_CLASS,
+		BEAN_METHOD,
+		PARAMETERS, 
+		CONCURRENT_FLAG, 
+		SORT_NO, 
+		CREATER, 
+		CREATED,
+		MODIFIER,
+		MODIFIED, 
+		REMARK, 
+		ROW_DEFAULT,
+		ROW_VALID, 
+		EXT1, 
+		EXT2,
+		EXT3,
+		ROW_VERSION)
+		values (
+		#{id,jdbcType=VARCHAR},
+		#{sysId,jdbcType=VARCHAR},
+		#{jobName,jdbcType=VARCHAR},
+		#{jobGroup,jdbcType=VARCHAR},
+		#{cronExpression,jdbcType=VARCHAR},
+		#{beanId,jdbcType=VARCHAR},
+		#{beanClass,jdbcType=VARCHAR},
+		#{beanMethod,jdbcType=VARCHAR},
+		#{parameters,jdbcType=VARCHAR},
+		#{concurrentFlag,jdbcType=VARCHAR},
+		#{sortNo,jdbcType=INTEGER},
+		#{creater,jdbcType=VARCHAR},
+		#{created,jdbcType=TIMESTAMP},
+		#{modifier,jdbcType=VARCHAR},
+		#{modified,jdbcType=TIMESTAMP},
+		#{remark,jdbcType=VARCHAR},
+		#{rowDefault,jdbcType=VARCHAR},
+		#{rowValid,jdbcType=VARCHAR},
+		#{ext1,jdbcType=VARCHAR},
+		#{ext2,jdbcType=VARCHAR},
+		#{ext3,jdbcType=VARCHAR},
+		#{rowVersion,jdbcType=DECIMAL})
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="cn.scihi.sys.pojo.Job">
+		update sys_job
+		set
+		JOB_NAME = #{jobName,jdbcType=VARCHAR},
+		JOB_GROUP = #{jobGroup,jdbcType=VARCHAR},
+		CRON_EXPRESSION = #{cronExpression,jdbcType=VARCHAR},
+		BEAN_ID = #{beanId,jdbcType=VARCHAR},
+		BEAN_CLASS = #{beanClass,jdbcType=VARCHAR},
+		BEAN_METHOD = #{beanMethod,jdbcType=VARCHAR},
+		PARAMETERS = #{parameters,jdbcType=VARCHAR},
+		CONCURRENT_FLAG = #{concurrentFlag,jdbcType=VARCHAR},
+		SORT_NO = #{sortNo,jdbcType=INTEGER},
+		MODIFIER = #{modifier,jdbcType=VARCHAR},
+		MODIFIED = #{modified,jdbcType=TIMESTAMP},
+		REMARK = #{remark,jdbcType=VARCHAR},
+		ROW_VALID = #{rowValid,jdbcType=VARCHAR},
+		EXT1 = #{ext1,jdbcType=VARCHAR},
+		EXT2 = #{ext2,jdbcType=VARCHAR},
+		EXT3 = #{ext3,jdbcType=VARCHAR},
+		ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		where ID =
+		#{id,jdbcType=VARCHAR}
+	</update>
+</mapper>

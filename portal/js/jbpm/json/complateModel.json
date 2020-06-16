@@ -1,0 +1,42 @@
+{
+ 	"审批工单":[
+		{"name": "分局局长", "type": "normal"}
+		,{"name": "分公司分管四级经理", "type": "normal"}
+		,{"name": "分公司分管三级经理", "type": "normal"}
+		,{"name": "市公司分管四级经理", "type": "normal"}
+		,{"name": "市公司分管三级经理", "type": "normal"}
+		,{"name": "市公司分管三级副经理", "type": "normal"}
+		,{"name": "市公司分管三级正经理", "type": "normal"}
+		,{"name": "市公司市场部分管产品专业三级经理正职", "type": "normal"}
+		,{"name": "市公司市场部分管产品专业三级经理副职", "type": "normal"}
+		,{"name": "市公司业务室", "type": "normal"}
+	]
+	,"合约终端拆包恢复送费":[
+		{"name": "分公司终端管理员", "type": "NormalGiveMoney"}
+		,{"name": "分公司分管副总", "type": "NormalGiveMoney"}
+		,{"name": "市公司对口专业管理员", "type": "NormalGiveMoney"}
+		,{"name": "市公司对口专业室经理", "type": "NormalGiveMoney"}
+	]
+	,"销号转预存":[
+		{"name": "分局局长(个人)", "type": "normal"}
+		,{"name": "分公司分管四级经理(个人)", "type": "normal"}
+		,{"name": "分公司分管三级经理(个人)", "type": "normal"}
+		,{"name": "市公司专业复核(个人)：黎敏", "type": "normal"}
+		,{"name": "市公司分管三级经理(市场)", "type": "normal"}
+		,{"name": "分局局长(集团)", "type": "normal"}
+		,{"name": "分公司分管四级经理(集体)", "type": "normal"}
+		,{"name": "分公司分管三级经理(集团)", "type": "normal"}
+		,{"name": "市公司专业复核(集团)：黎敏", "type": "normal"}
+		,{"name": "市公司分管三级经理(政企)", "type": "normal"}
+	]
+	,"移机减免移机费":[
+	]
+	,"缴费冲正":[
+		{"name": "分局局长", "type": "normal"}
+		,{"name": "营业分局长", "type": "normal"}
+		,{"name": "分管四级分管经理", "type": "normal"}
+		,{"name": "分管三级分管经理", "type": "normal"}
+		,{"name": "市公司专业复核人：肖俊", "type": "normal"}
+		,{"name": "市公司分管三级经理(政企/市场)", "type": "normal"}
+	]
+}

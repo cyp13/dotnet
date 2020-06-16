@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.sys.mapper.SeqMapper">
+	<select id="querySeq" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select
+		t.seqName as "seqName",
+		t.currentValue as "currentValue",
+		t.increment as "increment",
+		t.updateDay as "updateDay",
+		from c_sequence t 
+		where 1=1
+		<if test="null != seqName and '' != seqName">
+			and seqName = #{seqName}
+		</if>
+		<if test="null != currentValue and '' != currentValue">
+			and currentValue = #{currentValue}
+		</if>
+		<if test="null != increment and '' != increment">
+			and increment = #{increment}
+		</if>
+		<if test="null != updateDay and '' != updateDay">
+			and updateDay = #{updateDay}
+		</if>
+		<choose>
+			<when test="null != orderStr and '' != orderStr">
+				${orderStr}
+			</when>
+			<otherwise>
+				order by updateDay desc
+			</otherwise>
+		</choose>
+	</select>
+	
+	<select id="createSeq" parameterType="java.util.HashMap" resultType="java.lang.String">
+		select formSeq(#{flag},#{seq_name})
+	</select>
+	
+
+	<insert id="insertSeq" parameterType="java.util.HashMap">
+		insert into
+		c_sequence(seqName,currentValue,increment,updateDay)
+		values(#{seqName},#{currentValue},#{increment},#{updateDay})
+	</insert>
+
+	<delete id="deleteSeq" parameterType="java.lang.String">
+		delete from
+		c_sequence
+		where
+		seqName=#{seqName}
+	</delete>
+</mapper>

@@ -1,0 +1,7 @@
+ul.divTree {
+	width: 232px;
+	height: 300px;
+	border: 1px solid #ccc;
+	background: #f3f3f3;
+	overflow: auto;
+}

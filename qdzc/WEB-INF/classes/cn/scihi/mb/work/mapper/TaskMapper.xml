@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.work.mapper.TaskMapper">
+	<select id="queryTask" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+		select distinct
+		t.id as "id",
+		t.enterprise_flag as "enterprise_flag",
+		t.pid as "pid",
+		jt.DBID_ as "dbid",
+		t.task_id as "task_id",
+		t.form_id as "form_id",
+		t.form_type as "form_type",
+		d.dict_name as "form_type_name",
+		t.creater as "creater",
+		t.task_status as "task_status",
+		t.task_assignee as "task_assignee",
+		t.assign_time as "assign_time",
+		t.created as "created"
+		from t_task t 
+		left join sys_dict d
+		on t.form_type = d.dict_value and d.parent_id='formType'
+		left join jbpm4_task jt
+		on t.TASK_ID=jt.DBID_
+		where 1=1
+		<if test="null != id and '' != id">
+			and t.id = #{id}
+		</if>
+		<if test="null != enterprise_flag and '' != enterprise_flag">
+			and t.enterprise_flag = #{enterprise_flag}
+		</if>
+		<if test="null != pid and '' != pid">
+			and t.pid = #{pid}
+		</if>
+		<if test="null != form_id and '' != form_id">
+			and t.form_id = #{form_id}
+		</if>
+		<if test="null != task_status and '' != task_status">
+			and t.task_status = #{task_status}
+		</if>
+		<if test="null != form_type and '' != form_type">
+			and t.form_type = #{form_type}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and jt.DBID_ is not null
+		</if>
+		<if test="null != errData and '' != errData">
+			and t.task_assignee is null
+		</if>
+		order by CREATED asc
+	</select>
+
+	<insert id="insertTask" parameterType="java.util.HashMap">
+		<selectKey resultType="java.lang.String" order="BEFORE"
+			keyProperty="id">
+			select
+			uuid()
+		</selectKey>
+		insert into
+		t_task(id,pid,enterprise_flag,task_id,form_id,form_type,creater,created,task_status)
+		values(#{id},#{pid},#{enterpriseFlag},#{taskId},#{form_id},#{form_type},#{creater},now(),#{task_status})
+	</insert>
+
+	<update id="updateTaskStatus" parameterType="java.util.HashMap">
+		update 	t_task
+		<set>
+			task_status=#{task_status},
+			<if test="null!=task_assignee and '' != task_assignee">
+				assign_time=now(),
+				task_assignee=#{task_assignee}
+			</if>
+		</set>
+		where task_id=#{taskId}
+	</update>
+	<update id="updateTaskCreated" parameterType="java.lang.String">
+		update 	jbpm4_task
+		set	create_=now()
+		where dbid_=#{taskId};
+		update 	jbpm4_hist_task
+		set	create_=now()
+		where dbid_=#{taskId};
+		update 	jbpm4_hist_actinst
+		set	start_=now()
+		where htask_=#{taskId};
+	</update>
+	
+	
+	<update id="updateAllTaskStatus">
+		update 	t_task
+		set
+			task_status='1'
+		where task_status = '0'
+		and enterprise_flag='MY'
+	</update>
+
+	<delete id="deleteTask" parameterType="java.lang.String">
+		delete from
+		t_task
+		where
+		id=#{id}
+	</delete>
+</mapper>

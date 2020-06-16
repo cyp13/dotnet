@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="cn.scihi.mb.sys.mapper.DictMapper">
+
+	<resultMap id="BaseResultMap" type="java.util.HashMap">
+		<id column="ID" jdbcType="VARCHAR" property="id" />
+		<result column="PARENT_ID" jdbcType="VARCHAR" property="parentId" />
+		<result column="DICT_TYPE" jdbcType="VARCHAR" property="dictType" />
+		<result column="TYPE_NAME" jdbcType="VARCHAR" property="typeName" />
+		<result column="DICT_NAME" jdbcType="VARCHAR" property="dictName" />
+		<result column="DICT_VALUE" jdbcType="VARCHAR" property="dictValue" />
+		<result column="SORT_NO" jdbcType="INTEGER" property="sortNo" />
+		<result column="CREATER" jdbcType="VARCHAR" property="creater" />
+		<result column="CREATED" jdbcType="TIMESTAMP" property="created" />
+		<result column="MODIFIER" jdbcType="VARCHAR" property="modifier" />
+		<result column="MODIFIED" jdbcType="TIMESTAMP" property="modified" />
+		<result column="REMARK" jdbcType="VARCHAR" property="remark" />
+		<result column="ROW_DEFAULT" jdbcType="VARCHAR" property="rowDefault" />
+		<result column="ROW_VALID" jdbcType="VARCHAR" property="rowValid" />
+		<result column="EXT1" jdbcType="VARCHAR" property="ext1" />
+		<result column="EXT2" jdbcType="VARCHAR" property="ext2" />
+		<result column="EXT3" jdbcType="VARCHAR" property="ext3" />
+		<result column="ROW_VERSION" jdbcType="DECIMAL" property="rowVersion" />
+		<result column="SYS_ID" jdbcType="VARCHAR" property="sysId" />
+		
+		<result column="PARENT_NAME" jdbcType="VARCHAR" property="parentName" />
+		<result column="CHILDS" jdbcType="INTEGER" property="childs" />
+	</resultMap>
+	
+	<sql id="Base_Column_List1">
+		T.ID, T.PARENT_ID, T.DICT_TYPE, T.DICT_NAME, T.DICT_VALUE, T.SORT_NO, T.CREATER, T.CREATED,
+		T.MODIFIER, T.MODIFIED, T.REMARK, T.ROW_DEFAULT, T.ROW_VALID, T.EXT1, T.EXT2, T.EXT3, T.ROW_VERSION
+	</sql> 
+	<select id="queryDict" parameterType="java.util.HashMap" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List1" />,T3.DICT_NAME as "PARENT_NAME", count(T2.ID) as "CHILDS"
+		from sys_dict T
+		left join sys_dict T2 on T.ID = T2.PARENT_ID 
+		<if test="null != rowValid and '' != rowValid">
+			and T2.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		left join sys_dict T3 on T.PARENT_ID = T3.ID 
+		where 1 = 1
+		<![CDATA[ and T.ROW_VALID <> '9' ]]>
+		<if test="null != id and '' != id">
+			and T.ID = #{id,jdbcType=VARCHAR}
+		</if>
+		<if test="null != parentId and '' != parentId">
+			and T.PARENT_ID = #{parentId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != dictType and '' != dictType">
+			and T.DICT_TYPE = #{dictType,jdbcType=VARCHAR}
+		</if>
+		<if test="null != dictName and '' != dictName">
+			and T.DICT_NAME = #{dictName,jdbcType=VARCHAR}
+		</if>
+		<if test="null != dictValue and '' != dictValue">
+			and T.DICT_VALUE = #{dictValue,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and T.ROW_VALID = #{rowValid,jdbcType=VARCHAR}
+		</if>
+		<if test="null != rowVersion">
+			and T.ROW_VERSION = #{rowVersion,jdbcType=DECIMAL}
+		</if>
+		<if test="null != sysId">
+			and T.SYS_ID = #{sysId,jdbcType=VARCHAR}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (T.DICT_TYPE like '%${keywords}%'
+			or T.DICT_NAME like '%${keywords}%'
+			or T.DICT_VALUE like '%${keywords}%')
+		</if>
+		group by <include refid="Base_Column_List1" />,T3.DICT_NAME
+		order by T.SORT_NO, T.CREATED desc
+	</select>
+	<!-- 查询操作码 -->
+	<select id="queryOpercode" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+	  SELECT t.DICT_NAME DICT_CODE from sys_dict t where t.PARENT_ID = #{parentId}
+	</select>
+	
+	<!-- <select id="queryDict" parameterType="java.util.HashMap"
+		resultType="java.util.Map">
+	select
+		<choose>
+			<when test="null != flag_ and 'tree' == flag_">
+				distinct t.DICT_TYPE as "dictType", t.TYPE_NAME as "typeName"
+			</when>
+			<otherwise>
+				t.id as "id",
+				t.parent_id as "parentId",
+				t.dict_type as "dictType",
+				t.dict_name as "dictName",
+				t.dict_value as "dictValue",
+				t.sort_no as "sortNo",
+				t.creater as "creater",
+				CAST(t.created as datetime) as "created",
+				t.modifier as "modifier",
+				CAST(t.modified as datetime) as "modified",
+				t.remark as "remark",
+				t.row_default as "rowDefault",
+				t.row_valid as "rowValid",
+				t.ext1 as "ext1",
+				t.ext2 as "ext2",
+				t.ext3 as "ext3",
+				t.row_version as "rowVersion",
+				t.type_name as "typeName"
+			</otherwise>
+		</choose>
+	from SYS_DICT t
+	where 1=1
+		<![CDATA[ and ROW_VALID <> '9' ]]>
+		<if test="null != id and '' != id">
+			and t.ID = #{id}
+		</if>
+		<if test="null != parentId and '' != parentId">
+			and t.PARENT_ID = #{parentId}
+		</if>
+		<if test="null != dictType and '' != dictType">
+			and t.DICT_TYPE = #{dictType}
+		</if>
+		<if test="null != typeName and '' != typeName">
+			and t.TYPE_NAME like '%${typeName}%'
+		</if>
+		<if test="null != dictValue and '' != dictValue">
+			and t.DICT_VALUE = #{dictValue}
+		</if>
+		<if test="null != dictName and '' != dictName">
+			and t.DICT_NAME = #{dictName}
+		</if>
+		<if test="null != rowValid and '' != rowValid">
+			and t.ROW_VALID = #{rowValid}
+		</if>
+		<if test="null != rowVersion">
+			and t.ROW_VERSION = #{rowVersion}
+		</if>
+		<if test="null != keywords and '' != keywords">
+			and (t.DICT_TYPE like '%${keywords}%'
+			or t.TYPE_NAME like '%${keywords}%'
+			or t.DICT_NAME like '%${keywords}%'
+			or t.DICT_VALUE like '%${keywords}%')
+		</if>
+		<choose>
+			<when test="null != flag_ and 'tree' == flag_">
+				order by t.DICT_TYPE, t.TYPE_NAME
+			</when>
+			<otherwise>
+				order by t.DICT_TYPE, t.SORT_NO
+			</otherwise>
+		</choose>
+	</select> -->
+	
+</mapper>
